@@ -26,6 +26,12 @@ let componentAnalyzer = function() {
       fileMeta = {};
     },
     visitor: {
+      ImportDeclaration(path) {
+        if (!fileMeta.imports) {
+          fileMeta.imports = [];
+        }
+        fileMeta.imports.push(path.node.source.value);
+      },
       ObjectProperty(path) {
         if (path.parent.type === "ObjectExpression") {
           const name = path.node.key.name;

@@ -51,17 +51,15 @@
         </tr>
       </thead>
       <tbody>
-        {{#each this.model.data.links as |act|}}
+        {{#each this.model.data.imports as |import|}}
           <tr>
             <td>
-              link-to
+              Import path
             </td>
             <td>
-              {{act.name}}
+              {{import}}
             </td>
-            <td>
-              {{act.params}}
-            </td>
+            <td></td>
           </tr>
         {{/each}}
         {{#each this.model.data.actions as |act|}}
@@ -114,6 +112,19 @@
         </tr>
       </thead>
       <tbody>
+        {{#each this.model.data.links as |act|}}
+          <tr>
+            <td>
+              link-to
+            </td>
+            <td>
+              {{act.name}}
+            </td>
+            <td>
+              {{act.params}}
+            </td>
+          </tr>
+        {{/each}}
         {{#each this.model.data.components as |comp|}}
           <tr>
             <td>
