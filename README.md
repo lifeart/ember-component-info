@@ -1,8 +1,8 @@
 ember-component-info
 ==============================================================================
 
-[Short description of the addon.]
-
+This is proof of concept, how to generate documentation for component .js/.hbs files.
+http://localhost:4200/component-info
 
 Compatibility
 ------------------------------------------------------------------------------
