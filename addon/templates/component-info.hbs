@@ -2,6 +2,7 @@
   table {
     border: 1px solid black;
     min-width: 500px;
+    font-family: monospace;
   }
   td {
       border: 1px solid #f7f7f7;
@@ -32,7 +33,9 @@
   {{#if this.model.isComponent}}
     <table>
       <caption>
-        This is component "{{this.model.possibleName}}"
+        This is component information "
+        {{this.model.possibleName}}
+        "
       </caption>
       <thead>
         <tr>
@@ -48,6 +51,19 @@
         </tr>
       </thead>
       <tbody>
+        {{#each this.model.data.links as |act|}}
+          <tr>
+            <td>
+              link-to
+            </td>
+            <td>
+              {{act.name}}
+            </td>
+            <td>
+              {{act.params}}
+            </td>
+          </tr>
+        {{/each}}
         {{#each this.model.data.actions as |act|}}
           <tr>
             <td>
@@ -78,18 +94,22 @@
   {{#if this.model.isTemplate}}
     <table>
       <caption>
-        <h3>This is Template  "{{this.model.possibleName}}"</h3>
+        <h3>
+          This is Template information "
+          {{this.model.possibleName}}
+          "
+        </h3>
       </caption>
       <thead>
         <tr>
           <th>
-            Key
+            Type
           </th>
           <th>
-            Value
+            Name
           </th>
           <th>
-            Arg
+            Arg..
           </th>
         </tr>
       </thead>
@@ -103,6 +123,19 @@
               {{comp}}
             </td>
             <td></td>
+          </tr>
+        {{/each}}
+        {{#each this.model.data.modifiers as |comp|}}
+          <tr>
+            <td>
+              modifier
+            </td>
+            <td>
+              {{comp.name}}
+            </td>
+            <td>
+              {{comp.param}}
+            </td>
           </tr>
         {{/each}}
         {{#each this.model.data.arguments as |comp|}}
