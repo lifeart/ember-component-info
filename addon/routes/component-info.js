@@ -18,7 +18,7 @@ function buildGraph(components) {
         comp.paths.forEach((path)=>{
             hashMap[path.path] = path;
         });
-    })
+    });
 
     components.forEach((comp)=>{
         let componentNode = {
@@ -28,8 +28,52 @@ function buildGraph(components) {
         comp.paths.forEach(componentPath=>{
             let node = {
                 name: componentPath.name,
+                path: componentPath.path,
                 children: []
             };
+            
+            const imports = [];
+            const args = [];
+            const exp = [];
+            (componentPath.meta.imports || []).forEach((name)=>{
+                imports.push({
+                    name: name,
+                    path: name,
+                    children: []
+                })
+            });
+            (componentPath.meta.arguments || []).forEach((name)=>{
+                args.push({
+                    name: name,
+                    path: name,
+                    children: []
+                })
+            });
+            (componentPath.meta.exports || []).forEach((name)=>{
+                exp.push({
+                    name: name,
+                    path: name,
+                    children: []
+                })
+            });
+            if (imports.length) {
+                node.children.push({
+                    name: 'imports',
+                    children: imports
+                });
+            }
+            if (args.length) {
+                node.children.push({
+                    name: 'arguments',
+                    children: args
+                })
+            }
+            if (exp.length) {
+                node.children.push({
+                    name: 'exports',
+                    children: exp
+                })
+            }
             componentNode.children.push(node);
         });
         root.children.push(componentNode);

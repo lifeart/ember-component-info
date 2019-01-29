@@ -19,8 +19,8 @@ export default Component.extend({
       });
     
       const svg = select('#graph').append("svg")
-          .style("width", "100%")
-          .style("height", "auto");
+          .style("width", "1000")
+          .style("height", '900');
       
       const g = svg.append("g")
           .attr("font-family", "sans-serif")
@@ -39,7 +39,6 @@ export default Component.extend({
               .x(d => d.y)
               .y(d => d.x));
       
-              console.log('root.descendants()', root.descendants());
       const node = g.append("g")
           .attr("stroke-linejoin", "round")
           .attr("stroke-width", 3)
@@ -65,7 +64,7 @@ export default Component.extend({
     
     const treePlot = data => {
       const root = hierarchy(data);
-      root.dx = 10;
+      root.dx = 24;
       root.dy = width / (root.height + 1);
       return tree().nodeSize([root.dx, root.dy])(root);
     }
