@@ -5,6 +5,38 @@ function relativeName(absolute, root) {
   return absolute.replace(root + "/", "");
 }
 
+function buildGraph(components) {
+    const root = {
+        name: 'root',
+        children: []
+    };
+    const hashMap = {
+
+    };
+
+    components.forEach((comp)=>{
+        comp.paths.forEach((path)=>{
+            hashMap[path.path] = path;
+        });
+    })
+
+    components.forEach((comp)=>{
+        let componentNode = {
+            name: comp.name,
+            children: []
+        }
+        comp.paths.forEach(componentPath=>{
+            let node = {
+                name: componentPath.name,
+                children: []
+            };
+            componentNode.children.push(node);
+        });
+        root.children.push(componentNode);
+    })
+    return [root];
+}
+
 export default Route.extend({
   informator: service(),
   queryParams: {
@@ -62,6 +94,7 @@ export default Route.extend({
           p.meta = meta ? meta.data : null;
         });
       });
+      data.graph = buildGraph(data.resolvedComponents);
     } else if (data.isComponent) {
       data.data.imports = data.data.imports.map(name => {
         return {

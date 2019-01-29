@@ -1,0 +1,1 @@
+export { default } from 'ember-component-info/components/data-graph';

@@ -25,7 +25,8 @@
     "@glimmer/syntax": "^0.38.1",
     "ember-cli-babel": "^7.1.2",
     "ember-cli-htmlbars": "^3.0.1",
-    "recursive-readdir": "^2.2.2"
+    "recursive-readdir": "^2.2.2",
+    "ember-d3": "^0.5.1"
   },
   "devDependencies": {
     "@ember/optional-features": "^0.6.3",
