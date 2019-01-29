@@ -58,7 +58,25 @@
 					Import path
 				</td>
 				<td>
-					{{import}}
+					{{#if import.isLinkable}}
+					{{#link-to "component-info" (query-params file=import.name)}}
+					{{import.relativeName}}
+					{{/link-to}}
+					{{else}}
+					{{import.name}}
+					{{/if}}
+
+				</td>
+				<td></td>
+			</tr>
+			{{/each}}
+			{{#each this.component.data.exports as |export|}}
+			<tr>
+				<td>
+					Export path
+				</td>
+				<td>
+					{{export}}
 				</td>
 				<td></td>
 			</tr>

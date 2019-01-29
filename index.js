@@ -67,7 +67,7 @@ function extractClassNames(path) {
   return path.node.value.elements.map(el => el.value);
 }
 
-let fileMeta = {};
+let jsMeta = {};
 
 let componentAnalyzer = function () {
   // console.log(Object.keys(babel.file));
@@ -76,23 +76,27 @@ let componentAnalyzer = function () {
 
     },
     visitor: {
+      ExportNamedDeclaration(path) {
+        const source = path.node.source.value;
+        jsMeta.exports.push(source);
+      },
       ImportDeclaration(path) {
         const source = path.node.source.value;
-        fileMeta.imports.push(source);
+        jsMeta.imports.push(source);
       },
       ObjectProperty(path) {
         if (path.parent.type === "ObjectExpression") {
           const name = path.node.key.name;
           if (name === "actions") {
-            fileMeta.actions = extractActions(path);
+            jsMeta.actions = extractActions(path);
           } else if (name === "classNames") {
-            fileMeta.classNames = extractClassNames(path);
+            jsMeta.classNames = extractClassNames(path);
           }
         }
       }
     },
     post(file) {
-      file.metadata = fileMeta;
+      file.metadata = jsMeta;
       // console.log("exit", Object.keys(file));
     }
   };
@@ -134,9 +138,10 @@ function resetHBSMeta() {
 }
 
 function resetJSMeta() {
-  fileMeta = {
+  jsMeta = {
     actions: [],
     imports: [],
+    exports: [],
     classNames: []
   }
 }
@@ -192,86 +197,138 @@ function process(template) {
   });
 }
 
+function showComponentInfo(data, relativePath) {
+  resetJSMeta();
+  const options = {
+    plugins: [componentAnalyzer]
+  };
+  const meta = babel.transform(data, options).metadata;
+  meta.imports = meta.imports.map((imp) => {
+    if (imp.startsWith('.')) {
+      const paths = relativePath.split(path.sep);
+      paths.pop();
+      const maybeFile = path.join(paths.join(path.sep), normalizePath(imp));
+      const jsPath = maybeFile + '.js';
+      const hbsPath = maybeFile + '.hbs';
+      if (fs.existsSync(jsPath)) {
+        return serializePath(jsPath);
+      } else if (fs.existsSync(hbsPath)) {
+        return serializePath(hbsPath);
+      } else {
+        return serializePath(maybeFile);
+      }
+    } else {
+      return imp;
+    }
+  });
+  meta.exports = meta.exports.map((imp) => {
+    if (imp.startsWith('.')) {
+      const paths = relativePath.split(path.sep);
+      paths.pop();
+      const maybeFile = path.join(paths.join(path.sep), normalizePath(imp));
+      const jsPath = maybeFile + '.js';
+      const hbsPath = maybeFile + '.hbs';
+      if (fs.existsSync(jsPath)) {
+        return serializePath(jsPath);
+      } else if (fs.existsSync(hbsPath)) {
+        return serializePath(hbsPath);
+      } else {
+        return serializePath(maybeFile);
+      }
+    } else {
+      return imp;
+    }
+  });
+  return meta;
+}
+
+
+function resolveSyncExport(originalPath, exportPath) {
+	const exportPaths = (exportPath + '.js').split('/');
+	const relativeRoot = exportPaths.shift();
+	
+}
+
+function showComponentTemplateInfo(template) {
+  resetHBSMeta();
+  process(template);
+  // let printed = glimmer.print(ast);
+  return hbsMeta;
+}
+
 module.exports = {
   name: require("./package").name,
   serverMiddleware: function (config) {
     config.app.get("/_/files", this.onFile.bind(this));
   },
-  showComponentInfo(data, relativePath) {
-    resetJSMeta();
-    const options = {
-      plugins: [componentAnalyzer]
-    };
-    const meta = babel.transform(data, options).metadata;
-    meta.imports = meta.imports.map((imp) => {
-      if (imp.startsWith('.')) {
-		const paths = relativePath.split(path.sep);
-		paths.pop();
-        const maybeFile = path.join(paths.join(path.sep), normalizePath(imp));
-        const jsPath = maybeFile + '.js';
-		const hbsPath = maybeFile + '.hbs';
-        if (fs.existsSync(jsPath)) {
-          return serializePath(jsPath);
-        } else if (fs.existsSync(hbsPath)) {
-          return serializePath(hbsPath);
-        } else {
-          return serializePath(maybeFile);
-        }
-
-      } else {
-        return imp;
-      }
-    });
-    return meta;
-  },
-  showComponentTemplateInfo(template) {
-    resetHBSMeta();
-    process(template);
-    // let printed = glimmer.print(ast);
-    return hbsMeta;
-  },
   onFile(req, res) {
     res.setHeader("Content-Type", "application/javascript; charset=utf-8");
     const relativePath = normalizePath(req.query.item || "") || __dirname;
-    // console.log('relativePath', relativePath);
-    // console.log('endsWith - js', relativePath.endsWith('.js'));
-    // console.log('relativePath - hbs', relativePath.endsWith('.hbs'));
     const root = serializePath(__dirname);
     if (relativePath.endsWith(".js")) {
-      // console.log('read JS');
-      fs.readFile(relativePath, "utf8", (err, data) => {
-        return res.send({
-          type: "component",
-          path: req.query.item,
-          data: this.showComponentInfo(data, relativePath),
-          root
-        });
+      getComponentInformation(relativePath).then((result) => {
+        result.path = req.query.item;
+        result.root = root;
+        res.send(result);
       });
     } else if (relativePath.endsWith(".hbs")) {
-      fs.readFile(relativePath, "utf8", (err, data) => {
-        return res.send({
-          type: "template",
-          path: req.query.item,
-          data: this.showComponentTemplateInfo(data),
-          root
-        });
+      getTemplateInformation(relativePath).then((result) => {
+        result.path = req.query.item;
+        result.root = root;
+        res.send(result);
       });
     } else {
-      const files = fs
-        .readdirSync(relativePath)
-        .map(name => relativePath + path.sep + name)
-        .map(serializePath).filter(filterPath);
-
-      Promise.all(files.map(recursiveReadDirPromise)).then((results) => {
-        const files = [].concat.apply([], results).sort().map(serializePath);
-        res.send({
-          type: "path",
-          path: req.query.item,
-          data: files,
-          root
-        });
+      getFilesFromPath(relativePath).then((result) => {
+        result.path = req.query.item;
+        result.root = root;
+        res.send(result);
       });
-
     }
   }
 };
+
+
+function getFilesFromPath(relativePath) {
+  const files = fs
+    .readdirSync(relativePath)
+    .map(name => relativePath + path.sep + name)
+    .map(serializePath).filter(filterPath);
+
+  return Promise.all(files.map(recursiveReadDirPromise)).then((results) => {
+    const files = [].concat.apply([], results).sort().map(serializePath);
+    return {
+      type: "path",
+      data: files
+    };
+  });
+}
+
+function getComponentInformation(relativePath) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(relativePath, "utf8", (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({
+          type: "component",
+          data: showComponentInfo(data, relativePath),
+        });
+      }
+    });
+  });
+}
+
+function getTemplateInformation(relativePath) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(relativePath, "utf8", (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({
+          type: "template",
+          data: showComponentTemplateInfo(data),
+        });
+      }
+    });
+  });
+}

@@ -26,7 +26,15 @@ export default Route.extend({
           name: path.replace(data.root + '/', '')
         }
       })
-    }
+	} else if (data.isComponent) {
+		data.data.imports = data.data.imports.map((name)=>{
+			return {
+				isLinkable: name.endsWith('.hbs') || name.endsWith('.js'),
+				relativeName: name.replace(data.root + '/', ''),
+				name
+			}
+		});
+	}
     return data;
   },
   setupController(controller, model) {
