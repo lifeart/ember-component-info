@@ -15,6 +15,13 @@ export default Service.extend({
     _relativePath(path) {
         return path.replace(this.rootPath, '');
     },
+    async getMeta(paths) {
+        const q = encodeURIComponent(paths.join(','));
+        const request = await fetch(`/_/files?paths=${q}`);
+        const result = await request.json();
+        console.log(result);
+        return result;
+    },
     _extractComponentNameTail(path) {
         const purePath = this._relativePath(this._pathWithoutExtension(path));
         if (purePath.endsWith('/component')) {

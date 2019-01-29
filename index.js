@@ -242,18 +242,19 @@ function showComponentInfo(data, relativePath) {
   return meta;
 }
 
-
-function resolveSyncExport(originalPath, exportPath) {
-	const exportPaths = (exportPath + '.js').split('/');
-	const relativeRoot = exportPaths.shift();
-	
-}
-
 function showComponentTemplateInfo(template) {
   resetHBSMeta();
   process(template);
   // let printed = glimmer.print(ast);
   return hbsMeta;
+}
+
+function getFileInformation(relativePath) {
+  if (relativePath.endsWith('.js')) {
+    return getComponentInformation(relativePath);
+  } else {
+    return getTemplateInformation(relativePath);
+  }
 }
 
 module.exports = {
@@ -264,15 +265,18 @@ module.exports = {
   onFile(req, res) {
     res.setHeader("Content-Type", "application/javascript; charset=utf-8");
     const relativePath = normalizePath(req.query.item || "") || __dirname;
+    const pathsToResolve = (req.query.paths && req.query.paths.length) ? req.query.paths.split(',').map(normalizePath) : [];
     const root = serializePath(__dirname);
-    if (relativePath.endsWith(".js")) {
-      getComponentInformation(relativePath).then((result) => {
-        result.path = req.query.item;
-        result.root = root;
-        res.send(result);
+    if (pathsToResolve.length) {
+      Promise.all(pathsToResolve.map(getFileInformation)).then((result)=>{
+        res.send({
+          type: 'results',
+          data: result,
+          root
+        });
       });
-    } else if (relativePath.endsWith(".hbs")) {
-      getTemplateInformation(relativePath).then((result) => {
+    } else if (relativePath.endsWith(".js") || relativePath.endsWith(".hbs")) {
+      getFileInformation(relativePath).then((result) => {
         result.path = req.query.item;
         result.root = root;
         res.send(result);
@@ -311,6 +315,7 @@ function getComponentInformation(relativePath) {
       } else {
         resolve({
           type: "component",
+          relativePath: serializePath(relativePath),
           data: showComponentInfo(data, relativePath),
         });
       }
@@ -326,6 +331,7 @@ function getTemplateInformation(relativePath) {
       } else {
         resolve({
           type: "template",
+          relativePath: serializePath(relativePath),
           data: showComponentTemplateInfo(data),
         });
       }
