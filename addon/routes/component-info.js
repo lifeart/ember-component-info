@@ -1,6 +1,8 @@
 import Route from '@ember/routing/route';
+import { inject as service } from '@ember/service';
 
 export default Route.extend({
+  informator: service(),
   queryParams: {
     file: {
       refreshModel: true
@@ -23,9 +25,22 @@ export default Route.extend({
       data.data = data.data.map((path) => {
         return {
           path: path,
-          name: path.replace(data.root + '/', '')
+          name: path.replace(data.root + '/', ''),
+          componentName: this.informator.extractComponentName(path, data.root)
         }
-      })
+      }).filter(({componentName})=>componentName !== '<UNKNOWN>');
+      data.resolvedComponents = data.data.reduce((result, item)=>{
+          const group = result.filter(prop => prop.name === item.componentName)[0];
+          if (group) {
+            group.paths.push(item)
+          } else {
+              result.push({
+                  name: item.componentName,
+                  paths: [ item ]
+              })
+          }
+          return result;
+      }, []);
 	} else if (data.isComponent) {
 		data.data.imports = data.data.imports.map((name)=>{
 			return {
