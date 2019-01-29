@@ -1,188 +1,189 @@
 <style>
-  table {
-    border: 1px solid black;
-    min-width: 500px;
-    font-family: monospace;
-  }
-  td {
-      border: 1px solid #f7f7f7;
-      text-align: left;
-  }
+	table {
+		border: 1px solid black;
+		min-width: 500px;
+		font-family: monospace;
+	}
+
+	td {
+		border: 1px solid #f7f7f7;
+		text-align: left;
+	}
 </style>
 <p>
-  {{outlet}}
-  <small>
-    {{if this.model.path this.model.path "Inspecting"}}
-  </small>
-  <ul>
-    <li>
-      {{#link-to "component-info" (query-params file="")}}
-        Root
-      {{/link-to}}
-    </li>
-    {{#if this.model.isPath}}
-      {{#each this.model.data as |path|}}
-        <li>
-          {{#link-to "component-info" (query-params file=path)}}
-            {{path}}
-          {{/link-to}}
-        </li>
-      {{/each}}
-    {{/if}}
-  </ul>
-  {{#if this.model.isComponent}}
-    <table>
-      <caption>
-        This is component information "
-        {{this.model.possibleName}}
-        "
-      </caption>
-      <thead>
-        <tr>
-          <th>
-            Key
-          </th>
-          <th>
-            Value
-          </th>
-          <th>
-            Arg
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#each this.model.data.imports as |import|}}
-          <tr>
-            <td>
-              Import path
-            </td>
-            <td>
-              {{import}}
-            </td>
-            <td></td>
-          </tr>
-        {{/each}}
-        {{#each this.model.data.actions as |act|}}
-          <tr>
-            <td>
-              action
-            </td>
-            <td>
-              {{act.name}}
-            </td>
-            <td>
-              {{act.params}}
-            </td>
-          </tr>
-        {{/each}}
-        {{#each this.model.data.classNames as |name|}}
-          <tr>
-            <td>
-              className
-            </td>
-            <td>
-              {{name}}
-            </td>
-            <td></td>
-          </tr>
-        {{/each}}
-      </tbody>
-    </table>
-  {{/if}}
-  {{#if this.model.isTemplate}}
-    <table>
-      <caption>
-        <h3>
-          This is Template information "
-          {{this.model.possibleName}}
-          "
-        </h3>
-      </caption>
-      <thead>
-        <tr>
-          <th>
-            Type
-          </th>
-          <th>
-            Name
-          </th>
-          <th>
-            Arg..
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#each this.model.data.links as |act|}}
-          <tr>
-            <td>
-              link-to
-            </td>
-            <td>
-              {{act.name}}
-            </td>
-            <td>
-              {{act.params}}
-            </td>
-          </tr>
-        {{/each}}
-        {{#each this.model.data.components as |comp|}}
-          <tr>
-            <td>
-              component
-            </td>
-            <td>
-              {{comp}}
-            </td>
-            <td></td>
-          </tr>
-        {{/each}}
-        {{#each this.model.data.modifiers as |comp|}}
-          <tr>
-            <td>
-              modifier
-            </td>
-            <td>
-              {{comp.name}}
-            </td>
-            <td>
-              {{comp.param}}
-            </td>
-          </tr>
-        {{/each}}
-        {{#each this.model.data.arguments as |comp|}}
-          <tr>
-            <td>
-              argument
-            </td>
-            <td>
-              {{comp}}
-            </td>
-            <td></td>
-          </tr>
-        {{/each}}
-        {{#each this.model.data.properties as |comp|}}
-          <tr>
-            <td>
-              local prop
-            </td>
-            <td>
-              {{comp}}
-            </td>
-            <td></td>
-          </tr>
-        {{/each}}
-        {{#each this.model.data.helpers as |comp|}}
-          <tr>
-            <td>
-              helper
-            </td>
-            <td>
-              {{comp}}
-            </td>
-            <td></td>
-          </tr>
-        {{/each}}
-      </tbody>
-    </table>
-  {{/if}}
+	{{outlet}}
+	<small>
+		{{if this.model.relativePath this.model.relativePath "Inspecting"}}
+	</small>
+	<ul>
+		<li>
+			{{#link-to "component-info" (query-params file="")}}
+			Root
+			{{/link-to}}
+		</li>
+		{{#if this.paths.data.length}}
+		{{#each this.paths.data as |path|}}
+		<li>
+			{{#link-to "component-info" (query-params file=path.path)}}
+			{{path.name}}
+			{{/link-to}}
+		</li>
+		{{/each}}
+		{{/if}}
+	</ul>
+	{{#if this.component}}
+	<table>
+		<caption>
+			<h3>This is Component information "
+				{{this.component.possibleName}}
+				" </h3>
+		</caption>
+		<thead>
+			<tr>
+				<th>
+					Key
+				</th>
+				<th>
+					Value
+				</th>
+				<th>
+					Arg
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			{{#each this.component.data.imports as |import|}}
+			<tr>
+				<td>
+					Import path
+				</td>
+				<td>
+					{{import}}
+				</td>
+				<td></td>
+			</tr>
+			{{/each}}
+			{{#each this.component.data.actions as |act|}}
+			<tr>
+				<td>
+					action
+				</td>
+				<td>
+					{{act.name}}
+				</td>
+				<td>
+					{{act.params}}
+				</td>
+			</tr>
+			{{/each}}
+			{{#each this.component.data.classNames as |name|}}
+			<tr>
+				<td>
+					className
+				</td>
+				<td>
+					{{name}}
+				</td>
+				<td></td>
+			</tr>
+			{{/each}}
+		</tbody>
+	</table>
+	{{/if}}
+	{{#if this.template.isTemplate}}
+	<table>
+		<caption>
+			<h3>
+				This is Template information "
+				{{this.template.possibleName}}
+				"
+			</h3>
+		</caption>
+		<thead>
+			<tr>
+				<th>
+					Type
+				</th>
+				<th>
+					Name
+				</th>
+				<th>
+					Arg..
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			{{#each this.template.data.links as |act|}}
+			<tr>
+				<td>
+					link-to
+				</td>
+				<td>
+					{{act.name}}
+				</td>
+				<td>
+					{{act.params}}
+				</td>
+			</tr>
+			{{/each}}
+			{{#each this.template.data.components as |comp|}}
+			<tr>
+				<td>
+					component
+				</td>
+				<td>
+					{{comp}}
+				</td>
+				<td></td>
+			</tr>
+			{{/each}}
+			{{#each this.template.data.modifiers as |comp|}}
+			<tr>
+				<td>
+					modifier
+				</td>
+				<td>
+					{{comp.name}}
+				</td>
+				<td>
+					{{comp.param}}
+				</td>
+			</tr>
+			{{/each}}
+			{{#each this.template.data.arguments as |comp|}}
+			<tr>
+				<td>
+					argument
+				</td>
+				<td>
+					{{comp}}
+				</td>
+				<td></td>
+			</tr>
+			{{/each}}
+			{{#each this.template.data.properties as |comp|}}
+			<tr>
+				<td>
+					local prop
+				</td>
+				<td>
+					{{comp}}
+				</td>
+				<td></td>
+			</tr>
+			{{/each}}
+			{{#each this.template.data.helpers as |comp|}}
+			<tr>
+				<td>
+					helper
+				</td>
+				<td>
+					{{comp}}
+				</td>
+				<td></td>
+			</tr>
+			{{/each}}
+		</tbody>
+	</table>
+	{{/if}}
 </p>

@@ -3,6 +3,56 @@ const fs = require("fs");
 const path = require("path");
 const babel = require("@babel/core");
 const glimmer = require("@glimmer/syntax");
+const recursive = require("recursive-readdir");
+
+function serializePath(file) {
+  return file.split(path.sep).join('/');
+}
+
+function normalizePath(file) {
+  return file.split('/').join(path.sep);
+}
+
+
+function recursiveReadDirPromise(file) {
+  return new Promise((resolve, reject) => {
+    recursive(normalizePath(file), ["*.gitkeep", "*.css", ".less", ".scss", ".md"], function (err, files) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(files.filter(name => {
+          let tail = name.split('.').pop();
+          return tail === 'js' || tail === 'hbs';
+        }));
+      }
+    });
+  })
+}
+
+function filterPath(name) {
+  if (name.includes('/.')) {
+    return false;
+  }
+  const lastPath = name.split('/').pop();
+
+  if ([
+      'tmp',
+      'vendor',
+      'node_modules',
+      'tests',
+      'ember-cli-build.js',
+      'index.js',
+      'dist',
+      'testem.js',
+      'config'
+    ].includes(lastPath)) {
+    return false;
+  }
+  if (lastPath.indexOf('.') === -1) {
+    return true;
+  }
+  return lastPath.endsWith('.js') || lastPath.endsWith('.hbs');
+}
 
 function extractActions(path) {
   return path.node.value.properties.map(node => {
@@ -19,18 +69,16 @@ function extractClassNames(path) {
 
 let fileMeta = {};
 
-let componentAnalyzer = function() {
+let componentAnalyzer = function () {
   // console.log(Object.keys(babel.file));
   return {
     pre() {
-      fileMeta = {};
+
     },
     visitor: {
       ImportDeclaration(path) {
-        if (!fileMeta.imports) {
-          fileMeta.imports = [];
-        }
-        fileMeta.imports.push(path.node.source.value);
+        const source = path.node.source.value;
+        fileMeta.imports.push(source);
       },
       ObjectProperty(path) {
         if (path.parent.type === "ObjectExpression") {
@@ -65,6 +113,14 @@ function isLinkBlock(node) {
 
 var hbsMeta = {};
 
+
+function addUniqHBSMetaProperty(type, item) {
+  if (hbsMeta[type].includes(item)) {
+    return;
+  }
+  hbsMeta[type].push(item);
+}
+
 function resetHBSMeta() {
   hbsMeta = {
     paths: [],
@@ -77,8 +133,16 @@ function resetHBSMeta() {
   };
 }
 
+function resetJSMeta() {
+  fileMeta = {
+    actions: [],
+    imports: [],
+    classNames: []
+  }
+}
+
 function process(template) {
-  let plugin = function() {
+  let plugin = function () {
     return {
       visitor: {
         BlockStatement(node) {
@@ -91,25 +155,24 @@ function process(template) {
         },
         ElementNode(item) {
           if (item.tag.charAt(0) === item.tag.charAt(0).toUpperCase()) {
-            if (!hbsMeta.components.includes(item.tag)) {
-              hbsMeta.components.push(item.tag);
-            }
+            addUniqHBSMetaProperty('components', item.tag);
           }
         },
         PathExpression(item) {
+          const pathOriginal = item.original;
           if (item.data === true) {
             if (item.this === false) {
-              hbsMeta.arguments.push(item.original);
+              addUniqHBSMetaProperty('arguments', pathOriginal);
             }
           } else if (item.this === true) {
-            hbsMeta.properties.push(item.original);
+            addUniqHBSMetaProperty('properties', pathOriginal);
           } else {
-            if (item.original.includes("-") && !item.original.includes(".")) {
-              if (!hbsMeta.helpers.includes(item.original)) {
-                hbsMeta.helpers.push(item.original);
-              }
+            if (pathOriginal.includes('/')) {
+              addUniqHBSMetaProperty('components', pathOriginal);
+            } else if (pathOriginal.includes("-") && !pathOriginal.includes(".")) {
+              addUniqHBSMetaProperty('helpers', pathOriginal);
             } else {
-              hbsMeta.paths.push(item.original);
+              addUniqHBSMetaProperty('paths', pathOriginal);
             }
           }
         },
@@ -131,14 +194,35 @@ function process(template) {
 
 module.exports = {
   name: require("./package").name,
-  serverMiddleware: function(config) {
+  serverMiddleware: function (config) {
     config.app.get("/_/files", this.onFile.bind(this));
   },
-  showComponentInfo(data) {
+  showComponentInfo(data, relativePath) {
+    resetJSMeta();
     const options = {
       plugins: [componentAnalyzer]
     };
-    return babel.transform(data, options).metadata;
+    const meta = babel.transform(data, options).metadata;
+    meta.imports = meta.imports.map((imp) => {
+      if (imp.startsWith('.')) {
+		const paths = relativePath.split(path.sep);
+		paths.pop();
+        const maybeFile = path.join(paths.join(path.sep), normalizePath(imp));
+        const jsPath = maybeFile + '.js';
+		const hbsPath = maybeFile + '.hbs';
+        if (fs.existsSync(jsPath)) {
+          return serializePath(jsPath);
+        } else if (fs.existsSync(hbsPath)) {
+          return serializePath(hbsPath);
+        } else {
+          return serializePath(maybeFile);
+        }
+
+      } else {
+        return imp;
+      }
+    });
+    return meta;
   },
   showComponentTemplateInfo(template) {
     resetHBSMeta();
@@ -148,19 +232,19 @@ module.exports = {
   },
   onFile(req, res) {
     res.setHeader("Content-Type", "application/javascript; charset=utf-8");
-    const relativePath =
-      (req.query.item || "").split("/").join(path.sep) || __dirname;
+    const relativePath = normalizePath(req.query.item || "") || __dirname;
     // console.log('relativePath', relativePath);
     // console.log('endsWith - js', relativePath.endsWith('.js'));
     // console.log('relativePath - hbs', relativePath.endsWith('.hbs'));
-
+    const root = serializePath(__dirname);
     if (relativePath.endsWith(".js")) {
       // console.log('read JS');
       fs.readFile(relativePath, "utf8", (err, data) => {
         return res.send({
           type: "component",
           path: req.query.item,
-          data: this.showComponentInfo(data)
+          data: this.showComponentInfo(data, relativePath),
+          root
         });
       });
     } else if (relativePath.endsWith(".hbs")) {
@@ -168,19 +252,26 @@ module.exports = {
         return res.send({
           type: "template",
           path: req.query.item,
-          data: this.showComponentTemplateInfo(data)
+          data: this.showComponentTemplateInfo(data),
+          root
         });
       });
     } else {
       const files = fs
         .readdirSync(relativePath)
         .map(name => relativePath + path.sep + name)
-        .map(item => item.split(path.sep).join("/"));
-      res.send({
-        type: "path",
-        path: req.query.item,
-        data: files
+        .map(serializePath).filter(filterPath);
+
+      Promise.all(files.map(recursiveReadDirPromise)).then((results) => {
+        const files = [].concat.apply([], results).sort().map(serializePath);
+        res.send({
+          type: "path",
+          path: req.query.item,
+          data: files,
+          root
+        });
       });
+
     }
   }
 };
