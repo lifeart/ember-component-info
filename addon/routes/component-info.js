@@ -130,7 +130,14 @@ function buildGraph(components) {
 	
 	root.children.forEach((compName)=>{
 		compName.children = compName.children.filter((item=>{
-			const imps = importsToPatch.filter(a=>item.name === a.name);
+			const imps = importsToPatch.filter(a=>{
+				const hasEqualNames = item.name === a.name;
+				return hasEqualNames;
+				// const endsWithName = item.name.endsWith(a.name);
+				// const normalizedEndsWith = item.name.replace('/addon', '').endsWith(a.name);
+				// const noextEndsWith = item.name.replace('/addon', '').replace('.js', '').endsWith(a.name)
+				// return hasEqualNames || endsWithName || normalizedEndsWith || noextEndsWith;
+			});
 			if (imps.length) {
 				imps.forEach((imp)=>{
 					imp.children = imp.children.concat(item.children);
@@ -143,7 +150,14 @@ function buildGraph(components) {
 	})
 	root.children.forEach((compName)=>{
 		compName.children = compName.children.filter((item=>{
-			const imps = exportsToPatch.filter(a=>item.name === a.name);
+			const imps = exportsToPatch.filter(a=>{
+				const hasEqualNames = item.name === a.name;
+				return hasEqualNames;
+				// const endsWithName = item.name.endsWith(a.name);
+				// const normalizedEndsWith = item.name.replace('/addon', '').endsWith(a.name);
+				// const noextEndsWith = item.name.replace('/addon', '').replace('.js', '').endsWith(a.name)
+				// return hasEqualNames || endsWithName || normalizedEndsWith || noextEndsWith;
+			});
 			if (imps.length) {
 				imps.forEach((imp)=>{
 					imp.children = imp.children.concat(item.children);
