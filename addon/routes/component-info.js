@@ -7,7 +7,7 @@ function relativeName(absolute, root) {
 
 function buildGraph(components) {
     const root = {
-        name: 'root',
+        name: 'components',
         children: []
     };
     const hashMap = {
@@ -35,7 +35,9 @@ function buildGraph(components) {
             
             const imports = [];
             const args = [];
-            const exp = [];
+			const exp = [];
+			const acts = [];
+			const classNames = [];
             (componentPath.meta.imports || []).forEach((name)=>{
 				const importItem = {
                     name: name,
@@ -55,6 +57,20 @@ function buildGraph(components) {
 					importsToPatch.push(importField);
 					importItem.children.push(importField);
 				}
+            });
+            (componentPath.meta.actions || []).forEach((name)=>{
+                acts.push({
+                    name: name.name,
+                    path: name.name,
+                    children: []
+                })
+            });
+            (componentPath.meta.classNames || []).forEach((name)=>{
+                classNames.push({
+                    name: name,
+                    path: name,
+                    children: []
+                })
             });
             (componentPath.meta.arguments || []).forEach((name)=>{
                 args.push({
@@ -89,6 +105,18 @@ function buildGraph(components) {
                     children: args
                 })
             }
+            if (classNames.length) {
+                node.children.push({
+                    name: 'classNames',
+                    children: classNames
+                })
+            }
+            if (acts.length) {
+                node.children.push({
+                    name: 'actions',
+                    children: acts
+                })
+            }
             if (exp.length) {
                 node.children.push({
                     name: 'exports',
@@ -105,7 +133,7 @@ function buildGraph(components) {
 			const imps = importsToPatch.filter(a=>item.name === a.name);
 			if (imps.length) {
 				imps.forEach((imp)=>{
-					imp.children = item.children;
+					imp.children = imp.children.concat(item.children);
 				});
 				return false;
 			} else {
@@ -118,7 +146,7 @@ function buildGraph(components) {
 			const imps = exportsToPatch.filter(a=>item.name === a.name);
 			if (imps.length) {
 				imps.forEach((imp)=>{
-					imp.children = item.children;
+					imp.children = imp.children.concat(item.children);
 				});
 				return false;
 			} else {
