@@ -172,6 +172,26 @@
             {{/each}}
           </tbody>
         </table>
+        {{#if @model.hbsHelpers.length}}
+          <table>
+            <thead>
+              <tr>
+                <th>
+                  Helpers/Components Used
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each @model.hbsHelpers as |cmp|}}
+                <tr>
+                  <td>
+                    {{cmp}}
+                  </td>
+                </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        {{/if}}
         {{#if @model.hbsComponents.length}}
           <table>
             <thead>

@@ -78,6 +78,7 @@ export default Service.extend({
     componentInformation.jsImports = [];
     componentInformation.hbsComponents = [];
     componentInformation.hbsProps = [];
+    componentInformation.hbsHelpers = [];
 
     componentInformation.api = {
       actions: [],
@@ -136,6 +137,9 @@ export default Service.extend({
     });
     (meta.components || []).forEach(value => {
       componentInformation.hbsComponents.push(value);
+    });
+    (meta.helpers || []).forEach(value => {
+        componentInformation.hbsHelpers.push(value);
     });
     (meta.paths || []).forEach(value => {
       componentInformation.hbsProps.push(value);
