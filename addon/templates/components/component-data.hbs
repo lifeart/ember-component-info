@@ -100,54 +100,66 @@
                 {{@model.api.tagName}}
               </td>
             </tr>
-            <tr>
-              <td>
-                attributeBindings
-              </td>
-              <td>
-                {{@model.api.attributeBindings}}
-              </td>
-            </tr>
-            <tr>
-              <td>
-                mergedProperties
-              </td>
-              <td>
-                {{@model.api.mergedProperties}}
-              </td>
-            </tr>
-            <tr>
-              <td>
-                classNameBindings
-              </td>
-              <td>
-                {{@model.api.classNameBindings}}
-              </td>
-            </tr>
-            <tr>
-              <td>
-                concatenatedProperties
-              </td>
-              <td>
-                {{@model.api.concatenatedProperties}}
-              </td>
-            </tr>
-            <tr>
-              <td>
-                positionalParams
-              </td>
-              <td>
-                {{@model.api.positionalParams}}
-              </td>
-            </tr>
-            <tr>
-              <td>
-                classNames
-              </td>
-              <td>
-                {{@model.api.classNames}}
-              </td>
-            </tr>
+            {{#if @model.api.attributeBindings.length}}
+              <tr>
+                <td>
+                  attributeBindings
+                </td>
+                <td>
+                  {{@model.api.attributeBindings}}
+                </td>
+              </tr>
+            {{/if}}
+            {{#if @model.api.mergedProperties.length}}
+              <tr>
+                <td>
+                  mergedProperties
+                </td>
+                <td>
+                  {{@model.api.mergedProperties}}
+                </td>
+              </tr>
+            {{/if}}
+            {{#if @model.api.classNameBindings.length}}
+              <tr>
+                <td>
+                  classNameBindings
+                </td>
+                <td>
+                  {{@model.api.classNameBindings}}
+                </td>
+              </tr>
+            {{/if}}
+            {{#if @model.api.concatenatedProperties.length}}
+              <tr>
+                <td>
+                  concatenatedProperties
+                </td>
+                <td>
+                  {{@model.api.concatenatedProperties}}
+                </td>
+              </tr>
+            {{/if}}
+            {{#if @model.api.positionalParams.length}}
+              <tr>
+                <td>
+                  positionalParams
+                </td>
+                <td>
+                  {{@model.api.positionalParams}}
+                </td>
+              </tr>
+            {{/if}}
+            {{#if @model.api.classNames.length}}
+              <tr>
+                <td>
+                  classNames
+                </td>
+                <td>
+                  {{@model.api.classNames}}
+                </td>
+              </tr>
+            {{/if}}
             {{#each @model.api.actions as |prop|}}
               <tr>
                 <td>

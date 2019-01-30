@@ -90,82 +90,103 @@ export default Service.extend({
       classNames: []
     };
 
-    files[0].paths.forEach(({ meta }) => {
-      // console.log('file', file);
-      if (!meta) {
-        return;
-      }
-      (meta.computeds || []).forEach(value => {
-        componentInformation.jsComputeds.push(value);
-      });
-      (meta.props || []).forEach(value => {
-        componentInformation.jsProps.push(value);
-      });
-      (meta.functions || []).forEach(value => {
-        componentInformation.jsFunc.push(value);
-      });
-      (meta.actions || []).forEach(value => {
-        componentInformation.api.actions.push(value);
-      });
-      (meta.tagNames || []).forEach(value => {
-        componentInformation.api.tagName = value;
-      });
-      (meta.attributeBindings || []).forEach(value => {
-        componentInformation.api.attributeBindings.push(value);
-      });
-      (meta.classNames || []).forEach(value => {
-        componentInformation.api.classNames.push(value);
-      });
-      (meta.mergedProperties || []).forEach(value => {
-        componentInformation.api.mergedProperties.push(value);
-      });
-      (meta.concatenatedProperties || []).forEach(value => {
-        componentInformation.api.concatenatedProperties.push(value);
-      });
-      (meta.positionalParams || []).forEach(value => {
-        componentInformation.api.positionalParams.push(value);
-      });
-      (meta.classNameBindings || []).forEach(value => {
-        componentInformation.api.classNameBindings.push(value);
-      });
-      (meta.components || []).forEach(value => {
-        componentInformation.hbsComponents.push(value);
-      });
-      (meta.paths || []).forEach(value => {
-        componentInformation.hbsProps.push(value);
-      });
-      (meta.imports || []).forEach(value => {
-        componentInformation.jsImports.push(value);
-      });
-      (meta.unknownProps || []).forEach(rawName => {
-        // currentMedia.[]
-        const propName = rawName.split(".")[0];
-        const existingProps = componentInformation.jsProps.filter(name =>
-          name.startsWith(propName + " ")
-        );
-        if (!existingProps.length) {
-          let value = "undefined";
-          if (rawName.includes(".[]") || rawName.endsWith(".length")) {
-            if (rawName.split(".").length === 2) {
-              value = "[...]";
-            }
-          } else if (rawName.includes("{")) {
-            value = "{...}";
-          } else if (rawName.includes(".@each")) {
-            if (rawName.split(".").length === 3) {
-              value = "[{..}]";
-            }
-          } else if (
-            rawName.includes(".") &&
-            !rawName.includes("[") &&
-            !rawName.includes("{")
-          ) {
-            value = "{...}";
-          }
-          componentInformation.jsProps.push(`${propName} = ${value}`);
+    const meta = files[0].paths.reduce((result, it) => {
+      Object.keys(it.meta).forEach(name => {
+        if (name in result) {
+          result[name] = result[name].concat(it.meta[name]);
+        } else {
+          result[name] = it.meta[name];
         }
       });
+      return result;
+    }, {});
+
+    (meta.computeds || []).forEach(value => {
+      componentInformation.jsComputeds.push(value);
     });
+    (meta.props || []).forEach(value => {
+      componentInformation.jsProps.push(value);
+    });
+    (meta.functions || []).forEach(value => {
+      componentInformation.jsFunc.push(value);
+    });
+    (meta.actions || []).forEach(value => {
+      componentInformation.api.actions.push(value);
+    });
+    (meta.tagNames || []).forEach(value => {
+      componentInformation.api.tagName = value;
+    });
+    (meta.attributeBindings || []).forEach(value => {
+      componentInformation.api.attributeBindings.push(value);
+    });
+    (meta.classNames || []).forEach(value => {
+      componentInformation.api.classNames.push(value);
+    });
+    (meta.mergedProperties || []).forEach(value => {
+      componentInformation.api.mergedProperties.push(value);
+    });
+    (meta.concatenatedProperties || []).forEach(value => {
+      componentInformation.api.concatenatedProperties.push(value);
+    });
+    (meta.positionalParams || []).forEach(value => {
+      componentInformation.api.positionalParams.push(value);
+    });
+    (meta.classNameBindings || []).forEach(value => {
+      componentInformation.api.classNameBindings.push(value);
+    });
+    (meta.components || []).forEach(value => {
+      componentInformation.hbsComponents.push(value);
+    });
+    (meta.paths || []).forEach(value => {
+      componentInformation.hbsProps.push(value);
+    });
+    (meta.imports || []).forEach(value => {
+      componentInformation.jsImports.push(value);
+    });
+    (meta.properties || []).forEach(value => {
+      const localName = value.split(".")[1];
+      // @danger!
+      meta.unknownProps.push(localName);
+      componentInformation.hbsProps.push(value);
+    });
+    (meta.arguments || []).forEach(value => {
+      const localName = value.split(".")[0].replace("@", "");
+      // @danger!
+      meta.unknownProps.push(localName);
+      componentInformation.hbsProps.push(value);
+    });
+    (meta.unknownProps || []).forEach(rawName => {
+      // currentMedia.[]
+      if (!rawName) {
+          return;
+      }
+      const propName = rawName.split(".")[0];
+      const existingProps = componentInformation.jsProps.filter(name =>
+        name.startsWith(propName + " ")
+      );
+      if (!existingProps.length) {
+        let value = "undefined";
+        if (rawName.includes(".[]") || rawName.endsWith(".length")) {
+          if (rawName.split(".").length === 2) {
+            value = "[...]";
+          }
+        } else if (rawName.includes("{")) {
+          value = "{...}";
+        } else if (rawName.includes(".@each")) {
+          if (rawName.split(".").length === 3) {
+            value = "[{..}]";
+          }
+        } else if (
+          rawName.includes(".") &&
+          !rawName.includes("[") &&
+          !rawName.includes("{")
+        ) {
+          value = "{...}";
+        }
+        componentInformation.jsProps.push(`${propName} = ${value}`);
+      }
+    });
+
     componentInformation.jsProps.sort((a, b) => {
       if (a.endsWith("= undefined") && !b.endsWith("= undefined")) {
         return -1;
