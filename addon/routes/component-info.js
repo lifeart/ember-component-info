@@ -34,10 +34,33 @@ function buildGraph(components) {
             };
             
             const imports = [];
-            const args = [];
 			const exp = [];
 			const acts = [];
-			const classNames = [];
+
+
+
+			const possibleArrays = [
+				'classNameBindings', 'functions', 
+				'positionalParams', 'concatenatedProperties', 
+				'mergedProperties', 'classNameBindings', 'classNames', 'arguments'
+			];
+
+			possibleArrays.forEach((prop)=>{
+				let tmp = [];
+				(componentPath.meta[prop] || []).forEach((name)=>{
+					tmp.push({
+						name: name,
+						children: []
+					});
+				});
+				if (tmp.length) {
+					node.children.push({
+						name: prop,
+						children: tmp
+					})
+				}
+			});
+
             (componentPath.meta.imports || []).forEach((name)=>{
 				const importItem = {
                     name: name,
@@ -65,20 +88,7 @@ function buildGraph(components) {
                     children: []
                 })
             });
-            (componentPath.meta.classNames || []).forEach((name)=>{
-                classNames.push({
-                    name: name,
-                    path: name,
-                    children: []
-                })
-            });
-            (componentPath.meta.arguments || []).forEach((name)=>{
-                args.push({
-                    name: name,
-                    path: name,
-                    children: []
-                })
-            });
+
             (componentPath.meta.exports || []).forEach((rawName)=>{
 				// console.log('rawName', rawName);
 				const name = 'addon/components/'  + rawName.split('/components/')[1] + '.js';
@@ -98,18 +108,6 @@ function buildGraph(components) {
                     name: 'imports',
                     children: imports
                 });
-            }
-            if (args.length) {
-                node.children.push({
-                    name: 'arguments',
-                    children: args
-                })
-            }
-            if (classNames.length) {
-                node.children.push({
-                    name: 'classNames',
-                    children: classNames
-                })
             }
             if (acts.length) {
                 node.children.push({

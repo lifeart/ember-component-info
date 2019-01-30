@@ -76,6 +76,15 @@ let componentAnalyzer = function () {
 
     },
     visitor: {
+      Program(path) {
+        if (path.node.body.length === 2 && path.node.sourceType === 'module') {
+          if (path.node.body[0].type === 'ImportDeclaration' && path.node.body[1].type === 'ExportDefaultDeclaration') {
+            let exp = path.node.body[0].source.value;
+            jsMeta.exports.push(exp);
+          }
+        }
+        //path.node.name = path.node.name.split('').reverse().join('');
+      },
       ExportNamedDeclaration(path) {
         const source = path.node.source.value;
         jsMeta.exports.push(source);
@@ -84,6 +93,12 @@ let componentAnalyzer = function () {
         const source = path.node.source.value;
         jsMeta.imports.push(source);
       },
+      ObjectExpression(path) {
+        const methods = path.node.properties.filter((prop) => prop.type === 'ObjectMethod');
+        methods.forEach((method) => {
+          jsMeta.functions.push(method.key.name);
+        })
+      },
       ObjectProperty(path) {
         if (path.parent.type === "ObjectExpression") {
           const name = path.node.key.name;
@@ -91,6 +106,18 @@ let componentAnalyzer = function () {
             jsMeta.actions = extractActions(path);
           } else if (name === "classNames") {
             jsMeta.classNames = extractClassNames(path);
+          } else if (name === "tagName" && path.node.value.type === 'StringLiteral') {
+            jsMeta.tagNames = [path.node.value.value];
+          } else if (name === "attributeBindings") {
+            jsMeta.attributeBindings = path.node.value.elements.map(el => el.value);
+          } else if (name === "classNameBindings") {
+            jsMeta.classNameBindings = path.node.value.elements.map(el => el.value);
+          } else if (name === "concatenatedProperties") {
+            jsMeta.concatenatedProperties = path.node.value.elements.map(el => el.value);
+          } else if (name === "mergedProperties") {
+            jsMeta.mergedProperties = path.node.value.elements.map(el => el.value);
+          } else if (name === "positionalParams") {
+            jsMeta.positionalParams = path.node.value.elements.map(el => el.value);
           }
         }
       }
@@ -141,8 +168,15 @@ function resetJSMeta() {
   jsMeta = {
     actions: [],
     imports: [],
-    exports: [],
-    classNames: []
+    tagNames: [],
+    functions: [],
+    attributeBindings: [],
+    positionalParams: [],
+    concatenatedProperties: [],
+    mergedProperties: [],
+	classNameBindings: [],
+	classNames: [],
+    exports: []
   }
 }
 
