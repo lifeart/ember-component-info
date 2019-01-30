@@ -118,6 +118,36 @@ let componentAnalyzer = function () {
             jsMeta.mergedProperties = path.node.value.elements.map(el => el.value);
           } else if (name === "positionalParams") {
             jsMeta.positionalParams = path.node.value.elements.map(el => el.value);
+          } else if (path.node.value.type === 'CallExpression') {
+			let cname = path.node.value.callee.name;
+			if (cname === 'service') {
+				jsMeta.computeds.push(name + ' = service("' + (path.node.value.arguments.length ? path.node.value.arguments[0].value : name) + '")' );
+				return;
+			}
+			let postfix = '';
+			if (path.node.value.callee.type === 'MemberExpression') {
+				cname = path.node.value.callee.object.callee ? path.node.value.callee.object.callee.name : '<UNKNOWN>';
+				postfix =  path.node.value.callee.property.name;
+			}
+            let ar = [];
+            path.node.value.arguments.forEach((arg) => {
+              if (arg.type === 'StringLiteral') {
+                ar.push(`'${arg.value}'`);
+              }
+            });
+            jsMeta.computeds.push(name + ' = ' + cname + '(' + ar.join(', ') + ')' + (postfix ? '.' + postfix : ''));
+          } else if (path.node.value.type === 'NumericLiteral') {
+            jsMeta.props.push(`${name} = ${path.node.value.value}`);
+          } else if (path.node.value.type === 'StringLiteral') {
+            jsMeta.props.push(`${name} = "${path.node.value.value}"`);
+          } else if (path.node.value.type === 'BooleanLiteral') {
+            jsMeta.props.push(`${name} = ${path.node.value.value}`);
+          } else if (path.node.value.type === 'NullLiteral') {
+            jsMeta.props.push(`${name} = null `);
+          } else if (path.node.value.type === 'ObjectExpression') {
+            jsMeta.props.push(`${name} = { ... } `);
+          }  else if (path.node.value.type === 'ArrayExpression') {
+            jsMeta.props.push(`${name} = [ ... ] `);
           }
         }
       }
@@ -170,12 +200,14 @@ function resetJSMeta() {
     imports: [],
     tagNames: [],
     functions: [],
+    computeds: [],
+    props: [],
     attributeBindings: [],
     positionalParams: [],
     concatenatedProperties: [],
     mergedProperties: [],
-	classNameBindings: [],
-	classNames: [],
+    classNameBindings: [],
+    classNames: [],
     exports: []
   }
 }
@@ -196,13 +228,13 @@ function process(template) {
           if (item.tag.charAt(0) === item.tag.charAt(0).toUpperCase()) {
             addUniqHBSMetaProperty('components', item.tag);
           }
-		},
-		MustacheStatement(item) {
-			addUniqHBSMetaProperty('helpers', item.path.original);
-		},
-		SubExpression(item) {
-			addUniqHBSMetaProperty('helpers', item.path.original);
-		},
+        },
+        MustacheStatement(item) {
+          addUniqHBSMetaProperty('helpers', item.path.original);
+        },
+        SubExpression(item) {
+          addUniqHBSMetaProperty('helpers', item.path.original);
+        },
         PathExpression(item) {
           const pathOriginal = item.original;
           if (item.data === true) {
@@ -217,7 +249,7 @@ function process(template) {
             } else if (pathOriginal.includes("-") && !pathOriginal.includes(".")) {
               addUniqHBSMetaProperty('helpers', pathOriginal);
             } else {
-				// addUniqHBSMetaProperty('paths', pathOriginal);
+              // addUniqHBSMetaProperty('paths', pathOriginal);
             }
           }
         },

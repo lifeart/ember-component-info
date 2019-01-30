@@ -43,7 +43,8 @@ function buildGraph(components) {
 				'classNameBindings', 'functions', 
 				'positionalParams', 'concatenatedProperties', 
 				'mergedProperties', 'classNameBindings', 'classNames', 
-				'arguments','helpers', 'links', 'components', 'properties', 'paths'
+				'arguments','helpers', 'links', 'components', 'properties', 'paths', 'computeds', 
+				'props'
 			];
 
 			possibleArrays.forEach((prop)=>{
