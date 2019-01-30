@@ -134,7 +134,15 @@ let componentAnalyzer = function () {
               if (arg.type === 'StringLiteral') {
                 ar.push(`'${arg.value}'`);
               }
-            });
+			});
+			if (path.node.value.arguments.length) {
+				let isLastArgFn = path.node.value.arguments[path.node.value.arguments.length-1].type === 'FunctionExpression';
+				if (isLastArgFn) {
+					ar.push('fn() {...}')
+				}
+			}
+			// path.node.value.arguments
+			
             jsMeta.computeds.push(name + ' = ' + cname + '(' + ar.join(', ') + ')' + (postfix ? '.' + postfix : ''));
           } else if (path.node.value.type === 'NumericLiteral') {
             jsMeta.props.push(`${name} = ${path.node.value.value}`);
