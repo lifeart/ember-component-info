@@ -63,10 +63,8 @@ function filterPath(name) {
 
 function extractActions(path) {
   return path.node.value.properties.map(node => {
-    return {
-      name: node.key.name,
-      params: node.params.map(p => p.name)
-    };
+    const params = node.params.map(p=>p.name);
+    return `${node.key.name}(${params.join(', ')})`;
   });
 }
 
@@ -112,42 +110,46 @@ let componentAnalyzer = function() {
           prop => prop.type === "ObjectMethod"
         );
         methods.forEach(method => {
-          jsMeta.functions.push(method.key.name);
+          const params = method.params.map(p=>p.name);
+          jsMeta.functions.push(`${method.key.name}(${params.join(', ')})`);
         });
       },
       ObjectProperty(path) {
-        if (path.parent.type === "ObjectExpression") {
+        if (path.parent.type === "ObjectExpression" 
+          && !path.scope.parent) {
+          const valueType = path.node.value.type;
           const name = path.node.key.name;
+          const valueElements = path.node.value.elements || [];
           if (name === "actions") {
             jsMeta.actions = extractActions(path);
           } else if (name === "classNames") {
             jsMeta.classNames = extractClassNames(path);
           } else if (
             name === "tagName" &&
-            path.node.value.type === "StringLiteral"
+            valueType === "StringLiteral"
           ) {
             jsMeta.tagNames = [path.node.value.value];
           } else if (name === "attributeBindings") {
-            jsMeta.attributeBindings = path.node.value.elements.map(
+            jsMeta.attributeBindings = valueElements.map(
               el => el.value
             );
           } else if (name === "classNameBindings") {
-            jsMeta.classNameBindings = path.node.value.elements.map(
+            jsMeta.classNameBindings = valueElements.map(
               el => el.value
             );
           } else if (name === "concatenatedProperties") {
-            jsMeta.concatenatedProperties = path.node.value.elements.map(
+            jsMeta.concatenatedProperties = valueElements.map(
               el => el.value
             );
           } else if (name === "mergedProperties") {
-            jsMeta.mergedProperties = path.node.value.elements.map(
+            jsMeta.mergedProperties = valueElements.map(
               el => el.value
             );
           } else if (name === "positionalParams") {
-            jsMeta.positionalParams = path.node.value.elements.map(
+            jsMeta.positionalParams = valueElements.map(
               el => el.value
             );
-          } else if (path.node.value.type === "CallExpression") {
+          } else if (valueType === "CallExpression") {
             let cname = path.node.value.callee.name;
             if (cname === "service") {
               jsMeta.computeds.push(
@@ -170,6 +172,7 @@ let componentAnalyzer = function() {
             let ar = [];
             path.node.value.arguments.forEach(arg => {
               if (arg.type === "StringLiteral") {
+                jsMeta.unknownProps.push(arg.value);
                 ar.push(`'${arg.value}'`);
               }
             });
@@ -192,18 +195,26 @@ let componentAnalyzer = function() {
                 ")" +
                 (postfix ? "." + postfix : "")
             );
-          } else if (path.node.value.type === "NumericLiteral") {
+          } else if (valueType === "NumericLiteral") {
             jsMeta.props.push(`${name} = ${path.node.value.value}`);
-          } else if (path.node.value.type === "StringLiteral") {
+          } else if (valueType === "StringLiteral") {
             jsMeta.props.push(`${name} = "${path.node.value.value}"`);
-          } else if (path.node.value.type === "BooleanLiteral") {
+          } else if (valueType === "BooleanLiteral") {
             jsMeta.props.push(`${name} = ${path.node.value.value}`);
-          } else if (path.node.value.type === "NullLiteral") {
+          } else if (valueType === "NullLiteral") {
             jsMeta.props.push(`${name} = null `);
-          } else if (path.node.value.type === "ObjectExpression") {
+          } else if (valueType === "ObjectExpression") {
             jsMeta.props.push(`${name} = { ... } `);
-          } else if (path.node.value.type === "ArrayExpression") {
+          } else if (valueType === "ArrayExpression") {
             jsMeta.props.push(`${name} = [ ... ] `);
+          } else if (valueType === "Identifier") {
+            jsMeta.props.push(`${name} : any = ${path.node.value.name} `);
+          } else if (valueType === "ArrowFunctionExpression") {
+            jsMeta.props.push(`${name} = () => {} `);
+          } else if (valueType === "ConditionalExpression") {
+            jsMeta.props.push(`${name} = X ? Y : Z `);
+          } else if (valueType === "TaggedTemplateExpression") {
+            jsMeta.props.push(`${name} = ${path.node.value.tag.name}\`...\` `);
           }
         }
       }
@@ -257,6 +268,7 @@ function resetJSMeta() {
     functions: [],
     computeds: [],
     props: [],
+    unknownProps: [],
     attributeBindings: [],
     positionalParams: [],
     concatenatedProperties: [],

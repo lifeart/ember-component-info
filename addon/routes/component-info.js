@@ -6,171 +6,165 @@ function relativeName(absolute, root) {
 }
 
 function buildGraph(components) {
-    const root = {
-        name: 'components',
-        children: []
-    };
-    const hashMap = {
+  const root = {
+    name: "components",
+    children: []
+  };
+  const hashMap = {};
 
-    };
-
-    components.forEach((comp)=>{
-        comp.paths.forEach((path)=>{
-            hashMap[path.path] = path;
-        });
+  components.forEach(comp => {
+    comp.paths.forEach(path => {
+      hashMap[path.path] = path;
     });
-	const importsToPatch = [];
-	const exportsToPatch = [];
-    components.forEach((comp)=>{
-        let componentNode = {
-            name: comp.name,
+  });
+  const importsToPatch = [];
+  const exportsToPatch = [];
+  components.forEach(comp => {
+    let componentNode = {
+      name: comp.name,
+      children: []
+    };
+    comp.paths.forEach(componentPath => {
+      let node = {
+        name: componentPath.name,
+        path: componentPath.path,
+        children: []
+      };
+
+      const imports = [];
+      const exp = [];
+
+      const possibleArrays = [
+        "classNameBindings",
+        "functions",
+        "actions",
+        "positionalParams",
+        "concatenatedProperties",
+        "mergedProperties",
+        "attributeBindings",
+        "classNames",
+        "tagNames",
+        "arguments",
+        "helpers",
+        "links",
+        "components",
+        "properties",
+        "paths",
+        "computeds",
+        "props"
+      ];
+
+      possibleArrays.forEach(prop => {
+        let tmp = [];
+        (componentPath.meta[prop] || []).forEach(name => {
+          tmp.push({
+            name: name,
             children: []
-        }
-        comp.paths.forEach(componentPath=>{
-            let node = {
-                name: componentPath.name,
-                path: componentPath.path,
-                children: []
-            };
-            
-            const imports = [];
-			const exp = [];
-			const acts = [];
-
-
-
-			const possibleArrays = [
-				'classNameBindings', 'functions', 
-				'positionalParams', 'concatenatedProperties', 
-				'mergedProperties', 'attributeBindings', 'classNames',  'tagNames',
-				'arguments','helpers', 'links', 'components', 'properties', 'paths', 'computeds', 
-				'props'
-			];
-
-			possibleArrays.forEach((prop)=>{
-				let tmp = [];
-				(componentPath.meta[prop] || []).forEach((name)=>{
-					tmp.push({
-						name: name,
-						children: []
-					});
-				});
-				if (tmp.length) {
-					node.children.push({
-						name: prop,
-						children: tmp
-					})
-				}
-			});
-
-            (componentPath.meta.imports || []).forEach((name)=>{
-				const importItem = {
-                    name: name,
-                    path: name,
-                    children: []
-                };
-				//hashMap
-				imports.push(importItem)
-				if (hashMap[name]) {
-					importItem.name = hashMap[name].name;
-					// console.log('hashMap[name]', hashMap[name]);
-					const importField = {
-						name: hashMap[name].name,
-						children: []
-					};
-
-					importsToPatch.push(importField);
-					importItem.children.push(importField);
-				}
-            });
-            (componentPath.meta.actions || []).forEach((name)=>{
-                acts.push({
-                    name: name.name,
-                    path: name.name,
-                    children: []
-                })
-            });
-
-            (componentPath.meta.exports || []).forEach((rawName)=>{
-				// console.log('rawName', rawName);
-				const name = 'addon/components/'  + rawName.split('/components/')[1] + '.js';
-
-			
-				const exportItem = {
-					name: name, 
-					path: name, 
-					children: []
-				};
-
-				exportsToPatch.push(exportItem);
-                exp.push(exportItem);
-            });
-            if (imports.length) {
-                node.children.push({
-                    name: 'imports',
-                    children: imports
-                });
-            }
-            if (acts.length) {
-                node.children.push({
-                    name: 'actions',
-                    children: acts
-                })
-            }
-            if (exp.length) {
-                node.children.push({
-                    name: 'exports',
-                    children: exp
-                })
-            }
-            componentNode.children.push(node);
+          });
         });
-        root.children.push(componentNode);
-	})
-	if (false) {
-			
-	root.children.forEach((compName)=>{
-		compName.children = compName.children.filter((item=>{
-			const imps = importsToPatch.filter(a=>{
-				const hasEqualNames = item.name === a.name;
-				return hasEqualNames;
-				// const endsWithName = item.name.endsWith(a.name);
-				// const normalizedEndsWith = item.name.replace('/addon', '').endsWith(a.name);
-				// const noextEndsWith = item.name.replace('/addon', '').replace('.js', '').endsWith(a.name)
-				// return hasEqualNames || endsWithName || normalizedEndsWith || noextEndsWith;
-			});
-			if (imps.length) {
-				imps.forEach((imp)=>{
-					imp.children = imp.children.concat(item.children);
-				});
-				return false;
-			} else {
-				return true;
-			}
-		}));
-	})
-	root.children.forEach((compName)=>{
-		compName.children = compName.children.filter((item=>{
-			const imps = exportsToPatch.filter(a=>{
-				const hasEqualNames = item.name === a.name;
-				return hasEqualNames;
-				// const endsWithName = item.name.endsWith(a.name);
-				// const normalizedEndsWith = item.name.replace('/addon', '').endsWith(a.name);
-				// const noextEndsWith = item.name.replace('/addon', '').replace('.js', '').endsWith(a.name)
-				// return hasEqualNames || endsWithName || normalizedEndsWith || noextEndsWith;
-			});
-			if (imps.length) {
-				imps.forEach((imp)=>{
-					imp.children = imp.children.concat(item.children);
-				});
-				return false;
-			} else {
-				return true;
-			}
-		}));
-	})
-	}
-    return [root];
+        if (tmp.length) {
+          node.children.push({
+            name: prop,
+            children: tmp
+          });
+        }
+      });
+
+      (componentPath.meta.imports || []).forEach(name => {
+        const importItem = {
+          name: name,
+          path: name,
+          children: []
+        };
+        //hashMap
+        imports.push(importItem);
+        if (hashMap[name]) {
+          importItem.name = hashMap[name].name;
+          // console.log('hashMap[name]', hashMap[name]);
+          const importField = {
+            name: hashMap[name].name,
+            children: []
+          };
+
+          importsToPatch.push(importField);
+          importItem.children.push(importField);
+        }
+      });
+
+      (componentPath.meta.exports || []).forEach(rawName => {
+        // console.log('rawName', rawName);
+        const name =
+          "addon/components/" + rawName.split("/components/")[1] + ".js";
+
+        const exportItem = {
+          name: name,
+          path: name,
+          children: []
+        };
+
+        exportsToPatch.push(exportItem);
+        exp.push(exportItem);
+      });
+      if (imports.length) {
+        node.children.push({
+          name: "imports",
+          children: imports
+        });
+      }
+
+      if (exp.length) {
+        node.children.push({
+          name: "exports",
+          children: exp
+        });
+      }
+      componentNode.children.push(node);
+    });
+    root.children.push(componentNode);
+  });
+  if (false) {
+    root.children.forEach(compName => {
+      compName.children = compName.children.filter(item => {
+        const imps = importsToPatch.filter(a => {
+          const hasEqualNames = item.name === a.name;
+          return hasEqualNames;
+          // const endsWithName = item.name.endsWith(a.name);
+          // const normalizedEndsWith = item.name.replace('/addon', '').endsWith(a.name);
+          // const noextEndsWith = item.name.replace('/addon', '').replace('.js', '').endsWith(a.name)
+          // return hasEqualNames || endsWithName || normalizedEndsWith || noextEndsWith;
+        });
+        if (imps.length) {
+          imps.forEach(imp => {
+            imp.children = imp.children.concat(item.children);
+          });
+          return false;
+        } else {
+          return true;
+        }
+      });
+    });
+    root.children.forEach(compName => {
+      compName.children = compName.children.filter(item => {
+        const imps = exportsToPatch.filter(a => {
+          const hasEqualNames = item.name === a.name;
+          return hasEqualNames;
+          // const endsWithName = item.name.endsWith(a.name);
+          // const normalizedEndsWith = item.name.replace('/addon', '').endsWith(a.name);
+          // const noextEndsWith = item.name.replace('/addon', '').replace('.js', '').endsWith(a.name)
+          // return hasEqualNames || endsWithName || normalizedEndsWith || noextEndsWith;
+        });
+        if (imps.length) {
+          imps.forEach(imp => {
+            imp.children = imp.children.concat(item.children);
+          });
+          return false;
+        } else {
+          return true;
+        }
+      });
+    });
+  }
+  return [root];
 }
 
 export default Route.extend({
@@ -230,6 +224,12 @@ export default Route.extend({
           p.meta = meta ? meta.data : null;
         });
       });
+      this.informator.set("componentsArray", data.resolvedComponents);
+      let items = data.resolvedComponents.map(item =>
+        this.informator.extractComponentInformation(item.name)
+      );
+      console.log("items", items);
+      console.log("data.resolvedComponents", data.resolvedComponents);
       data.graph = buildGraph(data.resolvedComponents);
     } else if (data.isComponent) {
       data.data.imports = data.data.imports.map(name => {
