@@ -20,6 +20,7 @@ function buildGraph(components) {
         });
     });
 	const importsToPatch = [];
+	const exportsToPatch = [];
     components.forEach((comp)=>{
         let componentNode = {
             name: comp.name,
@@ -62,12 +63,19 @@ function buildGraph(components) {
                     children: []
                 })
             });
-            (componentPath.meta.exports || []).forEach((name)=>{
-                exp.push({
-                    name: name,
-                    path: name,
-                    children: []
-                })
+            (componentPath.meta.exports || []).forEach((rawName)=>{
+				// console.log('rawName', rawName);
+				const name = 'addon/components/'  + rawName.split('/components/')[1] + '.js';
+
+			
+				const exportItem = {
+					name: name, 
+					path: name, 
+					children: []
+				};
+
+				exportsToPatch.push(exportItem);
+                exp.push(exportItem);
             });
             if (imports.length) {
                 node.children.push({
@@ -95,6 +103,19 @@ function buildGraph(components) {
 	root.children.forEach((compName)=>{
 		compName.children = compName.children.filter((item=>{
 			const imps = importsToPatch.filter(a=>item.name === a.name);
+			if (imps.length) {
+				imps.forEach((imp)=>{
+					imp.children = item.children;
+				});
+				return false;
+			} else {
+				return true;
+			}
+		}));
+	})
+	root.children.forEach((compName)=>{
+		compName.children = compName.children.filter((item=>{
+			const imps = exportsToPatch.filter(a=>item.name === a.name);
 			if (imps.length) {
 				imps.forEach((imp)=>{
 					imp.children = item.children;

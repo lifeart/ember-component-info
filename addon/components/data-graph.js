@@ -6,7 +6,7 @@ import { linkHorizontal, linkVertical } from 'd3-shape';
 export default Component.extend({
   layout,
   didInsertElement() {
-    const width = 1500;
+    const width = 1000;
     const chart = () => {
 
       const root = treePlot(this.data[0]);
