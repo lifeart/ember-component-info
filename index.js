@@ -301,6 +301,11 @@ function process(template) {
             node.path.original !== "component"
           ) {
             addUniqHBSMetaProperty("helpers", node.path.original);
+          } else if (
+            node.pathOriginal !== "component" &&
+            node.path.original.includes("-")
+          ) {
+            addUniqHBSMetaProperty("components", node.path.original);
           }
         },
         ElementNode(item) {
@@ -466,7 +471,8 @@ function showComponentTemplateInfo(template) {
   hbsMeta.paths = hbsMeta.paths
     .filter(p => !allStuff.includes(p))
     .filter(p => !ignored.includes(p));
-  hbsMeta.properties = hbsMeta.properties.filter(p=>!ignored.includes(p));
+  hbsMeta.helpers = hbsMeta.helpers.filter(n=>!hbsMeta.components.includes(n));
+  hbsMeta.properties = hbsMeta.properties.filter(p => !ignored.includes(p));
   return hbsMeta;
 }
 

@@ -139,7 +139,7 @@ export default Service.extend({
       componentInformation.hbsComponents.push(value);
     });
     (meta.helpers || []).forEach(value => {
-        componentInformation.hbsHelpers.push(value);
+      componentInformation.hbsHelpers.push(value);
     });
     (meta.paths || []).forEach(value => {
       componentInformation.hbsProps.push(value);
@@ -162,7 +162,7 @@ export default Service.extend({
     (meta.unknownProps || []).forEach(rawName => {
       // currentMedia.[]
       if (!rawName) {
-          return;
+        return;
       }
       const propName = rawName.split(".")[0];
       const existingProps = componentInformation.jsProps.filter(name =>
@@ -257,7 +257,25 @@ export default Service.extend({
       } else if (hasJsFunc.length) {
         return `${name} as this.${hasJsFunc[0]}`;
       } else {
-        return name;
+        if (name !== "this") {
+          if (
+            name.includes(".") &&
+            !name.startsWith("@") &&
+            !name.startsWith("this.")
+          ) {
+            componentInformation.jsProps.push(
+              `${name.split(".")[0]} = undefined // (used in template)`
+            );
+          } else {
+            componentInformation.jsProps.push(
+              `${name} = undefined // (used in template)`
+            );
+          }
+
+          return `${name} as used in template`;
+        } else {
+          return name;
+        }
       }
     });
 
