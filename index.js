@@ -205,7 +205,7 @@ function showComponentInfo(data, relativePath) {
   const meta = babel.transform(data, options).metadata;
   meta.imports = meta.imports.map((imp) => {
 	const paths = relativePath.split(path.sep);
-	// const base = imp.split('/')[0];
+	const base = imp.split('/')[0];
 	paths.pop();
     if (imp.startsWith('.')) {
       const maybeFile = path.join(paths.join(path.sep), normalizePath(imp));
@@ -220,21 +220,32 @@ function showComponentInfo(data, relativePath) {
       }
     } else {
 		if (imp.includes('/templates/components/')) {
-			// const pureImp = imp.replace(base, '');
-			// const [root] = serializePath(relativePath).split(base);
-			// const posiblePaths = [];
-			// posiblePaths.push(root + base + '/addon' + pureImp + '.js');
-			// posiblePaths.push(root + base + '/addon' + pureImp + '.hbs');
-			// posiblePaths.push(root + base + '/app' + pureImp + '.js');
-			// posiblePaths.push(root + base + '/app' + pureImp + '.hbs');
-			// console.log(imp);
-			// console.log(pureImp);
-			// console.log(posiblePaths);
-			// posiblePaths.forEach((p)=>{
-			// 	if (fs.existsSync(normalizePath(p))) {
-			// 		console.log('exists', p);
-			// 	} 
-			// });
+			const pureImp = imp.replace(base, '');
+			const [root] = serializePath(relativePath).split(base);
+			const posiblePaths = [];
+			posiblePaths.push(root + base + '/addon' + pureImp + '.js');
+			posiblePaths.push(root + base + '/addon' + pureImp + '.hbs');
+			posiblePaths.push(root + base + '/app' + pureImp + '.js');
+			posiblePaths.push(root + base + '/app' + pureImp + '.hbs');
+			let result = imp;
+			posiblePaths.forEach((p)=>{
+				if (fs.existsSync(normalizePath(p))) {
+					result = serializePath(p);
+				} 
+			});
+			return result;
+		} else if (imp.includes('/mixins/')) {
+			const pureImp = imp.replace(base, '');
+			const [root] = serializePath(relativePath).split(base);
+			const posiblePaths = [];
+			posiblePaths.push(root + base + '/addon' + pureImp + '.js');
+			let result = imp;
+			posiblePaths.forEach((p)=>{
+				if (fs.existsSync(normalizePath(p))) {
+					result = serializePath(p);
+				} 
+			});
+			return result;
 		}
       return imp;
     }
