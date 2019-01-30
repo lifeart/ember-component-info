@@ -457,13 +457,16 @@ function showComponentTemplateInfo(template) {
   process(template);
   // let printed = glimmer.print(ast);
   // paths
+  const ignored = ignoredPaths();
   const allStuff = Object.keys(hbsMeta)
     .filter(key => key !== "paths")
     .reduce((result, key) => {
       return result.concat(hbsMeta[key]);
-    }, [])
-    .concat(ignoredPaths());
-  hbsMeta.paths = hbsMeta.paths.filter(p => !allStuff.includes(p));
+    }, []);
+  hbsMeta.paths = hbsMeta.paths
+    .filter(p => !allStuff.includes(p))
+    .filter(p => !ignored.includes(p));
+  hbsMeta.properties = hbsMeta.properties.filter(p=>!ignored.includes(p));
   return hbsMeta;
 }
 

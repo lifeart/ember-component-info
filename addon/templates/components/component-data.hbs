@@ -172,22 +172,26 @@
             {{/each}}
           </tbody>
         </table>
-        <table>
-          <thead>
-            <tr>
-              <th>
-                Components Used
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                {{@model.hbsComponents}}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        {{#if @model.hbsComponents.length}}
+          <table>
+            <thead>
+              <tr>
+                <th>
+                  Components Used
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each @model.hbsComponents as |cmp|}}
+                <tr>
+                  <td>
+                    {{cmp}}
+                  </td>
+                </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        {{/if}}
         <table>
           <thead>
             <tr>
