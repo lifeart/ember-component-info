@@ -63,8 +63,8 @@ function filterPath(name) {
 
 function extractActions(path) {
   return path.node.value.properties.map(node => {
-    const params = node.params.map(p=>p.name);
-    return `${node.key.name}(${params.join(', ')})`;
+    const params = node.params.map(p => p.name);
+    return `${node.key.name}(${params.join(", ")})`;
   });
 }
 
@@ -110,13 +110,12 @@ let componentAnalyzer = function() {
           prop => prop.type === "ObjectMethod"
         );
         methods.forEach(method => {
-          const params = method.params.map(p=>p.name);
-          jsMeta.functions.push(`${method.key.name}(${params.join(', ')})`);
+          const params = method.params.map(p => p.name);
+          jsMeta.functions.push(`${method.key.name}(${params.join(", ")})`);
         });
       },
       ObjectProperty(path) {
-        if (path.parent.type === "ObjectExpression" 
-          && !path.scope.parent) {
+        if (path.parent.type === "ObjectExpression" && !path.scope.parent) {
           const valueType = path.node.value.type;
           const name = path.node.key.name;
           const valueElements = path.node.value.elements || [];
@@ -124,31 +123,30 @@ let componentAnalyzer = function() {
             jsMeta.actions = extractActions(path);
           } else if (name === "classNames") {
             jsMeta.classNames = extractClassNames(path);
-          } else if (
-            name === "tagName" &&
-            valueType === "StringLiteral"
-          ) {
+          } else if (name === "tagName" && valueType === "StringLiteral") {
             jsMeta.tagNames = [path.node.value.value];
           } else if (name === "attributeBindings") {
-            jsMeta.attributeBindings = valueElements.map(
-              el => el.value
-            );
+            valueElements
+              .map(el => el.value)
+              .forEach(value => {
+                jsMeta.unknownProps.push(value.split(":")[0]);
+              });
+
+            jsMeta.attributeBindings = valueElements.map(el => el.value);
           } else if (name === "classNameBindings") {
-            jsMeta.classNameBindings = valueElements.map(
-              el => el.value
-            );
+            valueElements
+              .map(el => el.value)
+              .forEach(value => {
+                jsMeta.unknownProps.push(value.split(":")[0]);
+              });
+
+            jsMeta.classNameBindings = valueElements.map(el => el.value);
           } else if (name === "concatenatedProperties") {
-            jsMeta.concatenatedProperties = valueElements.map(
-              el => el.value
-            );
+            jsMeta.concatenatedProperties = valueElements.map(el => el.value);
           } else if (name === "mergedProperties") {
-            jsMeta.mergedProperties = valueElements.map(
-              el => el.value
-            );
+            jsMeta.mergedProperties = valueElements.map(el => el.value);
           } else if (name === "positionalParams") {
-            jsMeta.positionalParams = valueElements.map(
-              el => el.value
-            );
+            jsMeta.positionalParams = valueElements.map(el => el.value);
           } else if (valueType === "CallExpression") {
             let cname = path.node.value.callee.name;
             if (cname === "service") {
@@ -168,7 +166,7 @@ let componentAnalyzer = function() {
               cname = path.node.value.callee.object.callee
                 ? path.node.value.callee.object.callee.name
                 : "<UNKNOWN>";
-              postfix = path.node.value.callee.property.name + '()';
+              postfix = path.node.value.callee.property.name + "()";
 
               path.node.value.callee.object.arguments.forEach(arg => {
                 if (arg.type === "StringLiteral") {
@@ -176,9 +174,8 @@ let componentAnalyzer = function() {
                   ar.push(`'${arg.value}'`);
                 }
               });
-
             }
-           
+
             path.node.value.arguments.forEach(arg => {
               if (arg.type === "StringLiteral") {
                 jsMeta.unknownProps.push(arg.value);
@@ -298,7 +295,11 @@ function process(template) {
             if (!hbsMeta.links.includes(linkPath)) {
               hbsMeta.links.push(linkPath);
             }
-          } else if (!node.path.original.includes('.') && !node.path.original.includes('-') && node.path.original !== 'component') {
+          } else if (
+            !node.path.original.includes(".") &&
+            !node.path.original.includes("-") &&
+            node.path.original !== "component"
+          ) {
             addUniqHBSMetaProperty("helpers", node.path.original);
           }
         },
@@ -449,7 +450,7 @@ function showComponentInfo(data, relativePath) {
 }
 
 function ignoredPaths() {
-  return ['hasBlock', 'if', 'else', 'component', 'yield', 'hash', 'unless']
+  return ["hasBlock", "if", "else", "component", "yield", "hash", "unless"];
 }
 function showComponentTemplateInfo(template) {
   resetHBSMeta();
@@ -460,7 +461,8 @@ function showComponentTemplateInfo(template) {
     .filter(key => key !== "paths")
     .reduce((result, key) => {
       return result.concat(hbsMeta[key]);
-    }, []).concat(ignoredPaths());
+    }, [])
+    .concat(ignoredPaths());
   hbsMeta.paths = hbsMeta.paths.filter(p => !allStuff.includes(p));
   return hbsMeta;
 }

@@ -75,6 +75,7 @@ export default Service.extend({
     componentInformation.jsProps = [];
     componentInformation.jsComputeds = [];
     componentInformation.jsFunc = [];
+    componentInformation.jsImports = [];
     componentInformation.hbsComponents = [];
     componentInformation.hbsProps = [];
 
@@ -133,6 +134,9 @@ export default Service.extend({
       (meta.paths || []).forEach(value => {
         componentInformation.hbsProps.push(value);
       });
+      (meta.imports || []).forEach(value => {
+        componentInformation.jsImports.push(value);
+      });
       (meta.unknownProps || []).forEach(rawName => {
         // currentMedia.[]
         const propName = rawName.split(".")[0];
@@ -182,24 +186,24 @@ export default Service.extend({
       return a.split(" ")[0].localeCompare(b.split(" ")[0]);
     });
     componentInformation.jsComputeds.sort((a, b) => {
-        if (a.endsWith("= undefined") && !b.endsWith("= undefined")) {
-          return -1;
-        } else if (!a.endsWith("= undefined") && b.endsWith("= undefined")) {
-          return 1;
+      if (a.endsWith("= undefined") && !b.endsWith("= undefined")) {
+        return -1;
+      } else if (!a.endsWith("= undefined") && b.endsWith("= undefined")) {
+        return 1;
+      }
+      if (a.includes("(") && !b.includes("(")) {
+        return -1;
+      } else if (!a.includes("(") && b.includes("(")) {
+        return 1;
+      }
+      if (a.charAt(0) === b.charAt(0)) {
+        let diff = a.split(" ")[0].length - b.split(" ")[0].length;
+        if (diff !== 0) {
+          return diff;
         }
-        if (a.includes("(") && !b.includes("(")) {
-          return -1;
-        } else if (!a.includes("(") && b.includes("(")) {
-          return 1;
-        }
-        if (a.charAt(0) === b.charAt(0)) {
-          let diff = a.split(" ")[0].length - b.split(" ")[0].length;
-          if (diff !== 0) {
-            return diff;
-          }
-        }
-        return a.split(" ")[0].localeCompare(b.split(" ")[0]);
-      });
+      }
+      return a.split(" ")[0].localeCompare(b.split(" ")[0]);
+    });
     componentInformation.jsFunc.sort((a, b) => {
       let diff = a.split("(")[0].length - b.split("(")[0].length;
       if (diff !== 0) {
@@ -210,6 +214,27 @@ export default Service.extend({
     });
     componentInformation.api.actions.sort();
     componentInformation.api.attributeBindings.sort();
+    componentInformation.hbsProps = componentInformation.hbsProps.map(name => {
+      const path = name.split(".")[0];
+      const hasJsProp = componentInformation.jsProps.filter(name =>
+        name.startsWith(path + " ")
+      );
+      const hasComputed = componentInformation.jsComputeds.filter(name =>
+        name.startsWith(path + " ")
+      );
+      const hasJsFunc = componentInformation.jsComputeds.filter(name =>
+        name.startsWith(path)
+      );
+      if (hasJsProp.length) {
+        return `${name} as this.${hasJsProp[0]}`;
+      } else if (hasComputed.length) {
+        return `${name} as this.${hasComputed[0]}`;
+      } else if (hasJsFunc.length) {
+        return `${name} as this.${hasJsFunc[0]}`;
+      } else {
+        return name;
+      }
+    });
 
     return componentInformation;
   }

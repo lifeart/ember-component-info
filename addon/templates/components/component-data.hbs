@@ -12,6 +12,24 @@
           <thead>
             <tr>
               <th>
+                Imports
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each @model.jsImports as |prop|}}
+              <tr>
+                <td>
+                  {{prop}}
+                </td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+        <table>
+          <thead>
+            <tr>
+              <th>
                 Computeds
               </th>
             </tr>
