@@ -163,13 +163,22 @@ let componentAnalyzer = function() {
               return;
             }
             let postfix = "";
+            let ar = [];
             if (path.node.value.callee.type === "MemberExpression") {
               cname = path.node.value.callee.object.callee
                 ? path.node.value.callee.object.callee.name
                 : "<UNKNOWN>";
-              postfix = path.node.value.callee.property.name;
+              postfix = path.node.value.callee.property.name + '()';
+
+              path.node.value.callee.object.arguments.forEach(arg => {
+                if (arg.type === "StringLiteral") {
+                  jsMeta.unknownProps.push(arg.value);
+                  ar.push(`'${arg.value}'`);
+                }
+              });
+
             }
-            let ar = [];
+           
             path.node.value.arguments.forEach(arg => {
               if (arg.type === "StringLiteral") {
                 jsMeta.unknownProps.push(arg.value);
@@ -208,7 +217,7 @@ let componentAnalyzer = function() {
           } else if (valueType === "ArrayExpression") {
             jsMeta.props.push(`${name} = [ ... ] `);
           } else if (valueType === "Identifier") {
-            jsMeta.props.push(`${name} : any = ${path.node.value.name} `);
+            jsMeta.props.push(`${name} = ${path.node.value.name} `);
           } else if (valueType === "ArrowFunctionExpression") {
             jsMeta.props.push(`${name} = () => {} `);
           } else if (valueType === "ConditionalExpression") {
@@ -439,6 +448,9 @@ function showComponentInfo(data, relativePath) {
   return meta;
 }
 
+function ignoredPaths() {
+  return ['hasBlock', 'if', 'else', 'component', 'yield', 'hash', 'unless']
+}
 function showComponentTemplateInfo(template) {
   resetHBSMeta();
   process(template);
@@ -448,7 +460,7 @@ function showComponentTemplateInfo(template) {
     .filter(key => key !== "paths")
     .reduce((result, key) => {
       return result.concat(hbsMeta[key]);
-    }, []);
+    }, []).concat(ignoredPaths());
   hbsMeta.paths = hbsMeta.paths.filter(p => !allStuff.includes(p));
   return hbsMeta;
 }

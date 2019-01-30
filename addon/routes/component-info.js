@@ -1,5 +1,6 @@
 import Route from "@ember/routing/route";
 import { inject as service } from "@ember/service";
+import { schedule } from '@ember/runloop';
 
 function relativeName(absolute, root) {
   return absolute.replace(root + "/", "");
@@ -172,6 +173,9 @@ export default Route.extend({
   queryParams: {
     file: {
       refreshModel: true
+    },
+    selectedComponentName: {
+      refreshModel: false
     }
   },
   async model({ file }) {
@@ -230,6 +234,7 @@ export default Route.extend({
       );
       console.log("items", items);
       console.log("data.resolvedComponents", data.resolvedComponents);
+      data.components = items;
       data.graph = buildGraph(data.resolvedComponents);
     } else if (data.isComponent) {
       data.data.imports = data.data.imports.map(name => {
@@ -244,12 +249,42 @@ export default Route.extend({
   },
   setupController(controller, model) {
     if (!controller.queryParams) {
-      controller.set("queryParams", ["path"]);
+      controller.set("queryParams", ["path", "selectedComponentName"]);
       controller.set("file", null);
+    }
+    if (!controller.selectComponent) {
+      controller.toggle = function(prop) {
+        this.toggleProperty(prop);
+      }
+      controller.selectComponent = function (ind) {
+        // console.log(comp);
+        if (ind === 0) {
+          this.set('selectedComponent', null);
+          this.set('selectedComponentName', '');
+        } else {
+          const comp = this.paths.components[ind-1];
+          this.set('selectedComponentName', comp.name);
+          this.set('selectedComponent', this.paths.components[ind-1]);
+        }
+      }
     }
     this._super(...arguments);
     if (model.isPath) {
       controller.set("paths", model);
+
+      const selectedComponentName =  controller.get('selectedComponentName');
+      let selectedIndex = 0;
+      controller.paths.components.forEach((comp, index)=>{
+        if (comp.name === selectedComponentName) {
+          selectedIndex = index;
+          controller.set('selectedComponent', comp);
+          schedule('afterRender',()=>{
+            document.querySelector('select').selectedIndex = selectedIndex + 1;
+          })
+        }
+      });
+
+
     } else if (model.isComponent) {
       controller.set("component", model);
     } else if (model.isTemplate) {

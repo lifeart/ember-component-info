@@ -73,11 +73,14 @@ export default Service.extend({
     const componentInformation = {};
     componentInformation.name = componentName;
     componentInformation.jsProps = [];
+    componentInformation.jsComputeds = [];
     componentInformation.jsFunc = [];
+    componentInformation.hbsComponents = [];
+    componentInformation.hbsProps = [];
 
     componentInformation.api = {
       actions: [],
-      tagName: 'div',
+      tagName: "div",
       attributeBindings: [],
       mergedProperties: [],
       classNameBindings: [],
@@ -92,7 +95,7 @@ export default Service.extend({
         return;
       }
       (meta.computeds || []).forEach(value => {
-        componentInformation.jsProps.push(value);
+        componentInformation.jsComputeds.push(value);
       });
       (meta.props || []).forEach(value => {
         componentInformation.jsProps.push(value);
@@ -101,7 +104,7 @@ export default Service.extend({
         componentInformation.jsFunc.push(value);
       });
       (meta.actions || []).forEach(value => {
-        componentInformation.api.actions.push(value)
+        componentInformation.api.actions.push(value);
       });
       (meta.tagNames || []).forEach(value => {
         componentInformation.api.tagName = value;
@@ -124,43 +127,87 @@ export default Service.extend({
       (meta.classNameBindings || []).forEach(value => {
         componentInformation.api.classNameBindings.push(value);
       });
-      (meta.unknownProps || []).forEach((rawName)=>{
-          // currentMedia.[]
-        const propName  = rawName.split('.')[0];
-        const existingProps = componentInformation.jsProps.filter((name)=>name.startsWith(propName + ' '));
+      (meta.components || []).forEach(value => {
+        componentInformation.hbsComponents.push(value);
+      });
+      (meta.paths || []).forEach(value => {
+        componentInformation.hbsProps.push(value);
+      });
+      (meta.unknownProps || []).forEach(rawName => {
+        // currentMedia.[]
+        const propName = rawName.split(".")[0];
+        const existingProps = componentInformation.jsProps.filter(name =>
+          name.startsWith(propName + " ")
+        );
         if (!existingProps.length) {
-            let value = 'undefined';
-            if (rawName.includes('.[]') || rawName.endsWith('.length')) {
-                if (rawName.split('.').length === 2) {
-                    value = '[...]'
-                }
-            } else if (rawName.includes('{')) {
-                value = '{...}'
+          let value = "undefined";
+          if (rawName.includes(".[]") || rawName.endsWith(".length")) {
+            if (rawName.split(".").length === 2) {
+              value = "[...]";
             }
-            componentInformation.jsProps.push(`${propName} = ${value}`);
+          } else if (rawName.includes("{")) {
+            value = "{...}";
+          } else if (rawName.includes(".@each")) {
+            if (rawName.split(".").length === 3) {
+              value = "[{..}]";
+            }
+          } else if (
+            rawName.includes(".") &&
+            !rawName.includes("[") &&
+            !rawName.includes("{")
+          ) {
+            value = "{...}";
+          }
+          componentInformation.jsProps.push(`${propName} = ${value}`);
         }
       });
     });
-    componentInformation.jsProps.sort((a,b)=>{
-        if (a.endsWith('= undefined') && !b.endsWith('= undefined')) {
-            return -1;
-        } else if (!a.endsWith('= undefined') && b.endsWith('= undefined')) {
-            return 1;
+    componentInformation.jsProps.sort((a, b) => {
+      if (a.endsWith("= undefined") && !b.endsWith("= undefined")) {
+        return -1;
+      } else if (!a.endsWith("= undefined") && b.endsWith("= undefined")) {
+        return 1;
+      }
+      if (a.includes("(") && !b.includes("(")) {
+        return -1;
+      } else if (!a.includes("(") && b.includes("(")) {
+        return 1;
+      }
+      if (a.charAt(0) === b.charAt(0)) {
+        let diff = a.split(" ")[0].length - b.split(" ")[0].length;
+        if (diff !== 0) {
+          return diff;
         }
-        if (a.includes('(') && !b.includes('(')) {
-            return -1;
-        } else if (!a.includes('(') && b.includes('(')) {
-            return 1;
+      }
+      return a.split(" ")[0].localeCompare(b.split(" ")[0]);
+    });
+    componentInformation.jsComputeds.sort((a, b) => {
+        if (a.endsWith("= undefined") && !b.endsWith("= undefined")) {
+          return -1;
+        } else if (!a.endsWith("= undefined") && b.endsWith("= undefined")) {
+          return 1;
+        }
+        if (a.includes("(") && !b.includes("(")) {
+          return -1;
+        } else if (!a.includes("(") && b.includes("(")) {
+          return 1;
         }
         if (a.charAt(0) === b.charAt(0)) {
-            let diff = a.split(' ')[0].length - b.split(' ')[0].length;
-            if (diff !== 0) {
-                return diff;
-            }
+          let diff = a.split(" ")[0].length - b.split(" ")[0].length;
+          if (diff !== 0) {
+            return diff;
+          }
         }
-        return a.split(' ')[0].localeCompare(b.split(' ')[0]);
+        return a.split(" ")[0].localeCompare(b.split(" ")[0]);
+      });
+    componentInformation.jsFunc.sort((a, b) => {
+      let diff = a.split("(")[0].length - b.split("(")[0].length;
+      if (diff !== 0) {
+        return diff;
+      }
+
+      return a.split("(")[0].localeCompare(b.split("(")[0]);
     });
-    componentInformation.jsFunc.sort();
     componentInformation.api.actions.sort();
     componentInformation.api.attributeBindings.sort();
 
