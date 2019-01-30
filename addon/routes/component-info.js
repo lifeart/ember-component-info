@@ -42,7 +42,7 @@ function buildGraph(components) {
 			const possibleArrays = [
 				'classNameBindings', 'functions', 
 				'positionalParams', 'concatenatedProperties', 
-				'mergedProperties', 'classNameBindings', 'classNames', 
+				'mergedProperties', 'attributeBindings', 'classNames',  'tagNames',
 				'arguments','helpers', 'links', 'components', 'properties', 'paths', 'computeds', 
 				'props'
 			];
