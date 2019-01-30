@@ -2,11 +2,11 @@ import Component from '@ember/component';
 import layout from '../templates/components/data-graph';
 import { hierarchy, tree}  from 'd3-hierarchy'
 import { select } from 'd3-selection';
-import { linkHorizontal } from 'd3-shape';
+import { linkHorizontal, linkVertical } from 'd3-shape';
 export default Component.extend({
   layout,
   didInsertElement() {
-    const width = 932;
+    const width = 1500;
     const chart = () => {
 
       const root = treePlot(this.data[0]);
@@ -19,8 +19,8 @@ export default Component.extend({
       });
     
       const svg = select('#graph').append("svg")
-          .style("width", "1000")
-          .style("height", '900');
+          .style("width", "1900")
+          .style("height", '1500');
       
       const g = svg.append("g")
           .attr("font-family", "sans-serif")
@@ -64,7 +64,7 @@ export default Component.extend({
     
     const treePlot = data => {
       const root = hierarchy(data);
-      root.dx = 24;
+      root.dx = 30;
       root.dy = width / (root.height + 1);
       return tree().nodeSize([root.dx, root.dy])(root);
     }

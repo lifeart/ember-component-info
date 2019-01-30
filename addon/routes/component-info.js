@@ -19,7 +19,7 @@ function buildGraph(components) {
             hashMap[path.path] = path;
         });
     });
-
+	const importsToPatch = [];
     components.forEach((comp)=>{
         let componentNode = {
             name: comp.name,
@@ -36,11 +36,24 @@ function buildGraph(components) {
             const args = [];
             const exp = [];
             (componentPath.meta.imports || []).forEach((name)=>{
-                imports.push({
+				const importItem = {
                     name: name,
                     path: name,
                     children: []
-                })
+                };
+				//hashMap
+				imports.push(importItem)
+				if (hashMap[name]) {
+					importItem.name = hashMap[name].name;
+					// console.log('hashMap[name]', hashMap[name]);
+					const importField = {
+						name: hashMap[name].name,
+						children: []
+					};
+
+					importsToPatch.push(importField);
+					importItem.children.push(importField);
+				}
             });
             (componentPath.meta.arguments || []).forEach((name)=>{
                 args.push({
@@ -77,7 +90,21 @@ function buildGraph(components) {
             componentNode.children.push(node);
         });
         root.children.push(componentNode);
-    })
+	})
+	
+	root.children.forEach((compName)=>{
+		compName.children = compName.children.filter((item=>{
+			const imps = importsToPatch.filter(a=>item.name === a.name);
+			if (imps.length) {
+				imps.forEach((imp)=>{
+					imp.children = item.children;
+				});
+				return false;
+			} else {
+				return true;
+			}
+		}));
+	})
     return [root];
 }
 
