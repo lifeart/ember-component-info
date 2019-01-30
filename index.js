@@ -196,7 +196,13 @@ function process(template) {
           if (item.tag.charAt(0) === item.tag.charAt(0).toUpperCase()) {
             addUniqHBSMetaProperty('components', item.tag);
           }
-        },
+		},
+		MustacheStatement(item) {
+			addUniqHBSMetaProperty('helpers', item.path.original);
+		},
+		SubExpression(item) {
+			addUniqHBSMetaProperty('helpers', item.path.original);
+		},
         PathExpression(item) {
           const pathOriginal = item.original;
           if (item.data === true) {
@@ -211,7 +217,7 @@ function process(template) {
             } else if (pathOriginal.includes("-") && !pathOriginal.includes(".")) {
               addUniqHBSMetaProperty('helpers', pathOriginal);
             } else {
-              addUniqHBSMetaProperty('paths', pathOriginal);
+				// addUniqHBSMetaProperty('paths', pathOriginal);
             }
           }
         },

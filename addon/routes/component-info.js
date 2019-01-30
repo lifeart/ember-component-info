@@ -42,7 +42,8 @@ function buildGraph(components) {
 			const possibleArrays = [
 				'classNameBindings', 'functions', 
 				'positionalParams', 'concatenatedProperties', 
-				'mergedProperties', 'classNameBindings', 'classNames', 'arguments'
+				'mergedProperties', 'classNameBindings', 'classNames', 
+				'arguments','helpers', 'links', 'components', 'properties', 'paths'
 			];
 
 			possibleArrays.forEach((prop)=>{
@@ -125,7 +126,8 @@ function buildGraph(components) {
         });
         root.children.push(componentNode);
 	})
-	
+	if (false) {
+			
 	root.children.forEach((compName)=>{
 		compName.children = compName.children.filter((item=>{
 			const imps = importsToPatch.filter(a=>{
@@ -166,6 +168,7 @@ function buildGraph(components) {
 			}
 		}));
 	})
+	}
     return [root];
 }
 

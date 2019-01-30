@@ -6,7 +6,7 @@ import { linkHorizontal, linkVertical } from 'd3-shape';
 export default Component.extend({
   layout,
   didInsertElement() {
-    const width = 2800;
+    const width = 2600;
     const chart = () => {
 
       const root = treePlot(this.data[0]);
@@ -19,7 +19,7 @@ export default Component.extend({
       });
 	//   console.log('' + (this.data[0].children.length * 200) + 'px');
       const svg = select('#graph').append("svg", width, x1 - x0 + root.dx * 2)
-          .style("width", "100%")
+          .style("width", "200vw")
           .style("height", '' + (this.data[0].children.length * 200) + 'px');
       
       const g = svg.append("g")
