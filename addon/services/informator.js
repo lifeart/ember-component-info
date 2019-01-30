@@ -243,7 +243,7 @@ export default Service.extend({
       const hasComputed = componentInformation.jsComputeds.filter(name =>
         name.startsWith(path + " ")
       );
-      const hasJsFunc = componentInformation.jsComputeds.filter(name =>
+      const hasJsFunc = componentInformation.jsFunc.filter(name =>
         name.startsWith(path)
       );
       if (hasJsProp.length) {
