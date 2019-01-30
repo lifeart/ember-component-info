@@ -204,9 +204,9 @@ function showComponentInfo(data, relativePath) {
   };
   const meta = babel.transform(data, options).metadata;
   meta.imports = meta.imports.map((imp) => {
-	const paths = relativePath.split(path.sep);
-	const base = imp.split('/')[0];
-	paths.pop();
+    const paths = relativePath.split(path.sep);
+    const base = imp.split('/')[0];
+    paths.pop();
     if (imp.startsWith('.')) {
       const maybeFile = path.join(paths.join(path.sep), normalizePath(imp));
       const jsPath = maybeFile + '.js';
@@ -219,34 +219,34 @@ function showComponentInfo(data, relativePath) {
         return serializePath(maybeFile);
       }
     } else {
-		if (imp.includes('/templates/components/')) {
-			const pureImp = imp.replace(base, '');
-			const [root] = serializePath(relativePath).split(base);
-			const posiblePaths = [];
-			posiblePaths.push(root + base + '/addon' + pureImp + '.js');
-			posiblePaths.push(root + base + '/addon' + pureImp + '.hbs');
-			posiblePaths.push(root + base + '/app' + pureImp + '.js');
-			posiblePaths.push(root + base + '/app' + pureImp + '.hbs');
-			let result = imp;
-			posiblePaths.forEach((p)=>{
-				if (fs.existsSync(normalizePath(p))) {
-					result = serializePath(p);
-				} 
-			});
-			return result;
-		} else if (imp.includes('/mixins/')) {
-			const pureImp = imp.replace(base, '');
-			const [root] = serializePath(relativePath).split(base);
-			const posiblePaths = [];
-			posiblePaths.push(root + base + '/addon' + pureImp + '.js');
-			let result = imp;
-			posiblePaths.forEach((p)=>{
-				if (fs.existsSync(normalizePath(p))) {
-					result = serializePath(p);
-				} 
-			});
-			return result;
-		}
+      if (imp.includes('/templates/components/')) {
+        const pureImp = imp.replace(base, '');
+        const [root] = serializePath(relativePath).split(base);
+        const posiblePaths = [];
+        posiblePaths.push(root + base + '/addon' + pureImp + '.js');
+        posiblePaths.push(root + base + '/addon' + pureImp + '.hbs');
+        posiblePaths.push(root + base + '/app' + pureImp + '.js');
+        posiblePaths.push(root + base + '/app' + pureImp + '.hbs');
+        let result = imp;
+        posiblePaths.forEach((p) => {
+          if (fs.existsSync(normalizePath(p))) {
+            result = serializePath(p);
+          }
+        });
+        return result;
+      } else if (imp.includes('/mixins/')) {
+        const pureImp = imp.replace(base, '');
+        const [root] = serializePath(relativePath).split(base);
+        const posiblePaths = [];
+        posiblePaths.push(root + base + '/addon' + pureImp + '.js');
+        let result = imp;
+        posiblePaths.forEach((p) => {
+          if (fs.existsSync(normalizePath(p))) {
+            result = serializePath(p);
+          }
+        });
+        return result;
+      }
       return imp;
     }
   });
@@ -297,7 +297,7 @@ module.exports = {
     const pathsToResolve = (req.query.paths && req.query.paths.length) ? req.query.paths.split(',').map(normalizePath) : [];
     const root = serializePath(__dirname);
     if (pathsToResolve.length) {
-      Promise.all(pathsToResolve.map(getFileInformation)).then((result)=>{
+      Promise.all(pathsToResolve.map(getFileInformation)).then((result) => {
         res.send({
           type: 'results',
           data: result,
@@ -322,6 +322,13 @@ module.exports = {
 
 
 function getFilesFromPath(relativePath) {
+  if (!fs.existsSync(relativePath)) {
+    return {
+      type: "path",
+      status: 404,
+      data: []
+    };
+  }
   const files = fs
     .readdirSync(relativePath)
     .map(name => relativePath + path.sep + name)
