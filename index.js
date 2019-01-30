@@ -204,9 +204,10 @@ function showComponentInfo(data, relativePath) {
   };
   const meta = babel.transform(data, options).metadata;
   meta.imports = meta.imports.map((imp) => {
+	const paths = relativePath.split(path.sep);
+	// const base = imp.split('/')[0];
+	paths.pop();
     if (imp.startsWith('.')) {
-      const paths = relativePath.split(path.sep);
-      paths.pop();
       const maybeFile = path.join(paths.join(path.sep), normalizePath(imp));
       const jsPath = maybeFile + '.js';
       const hbsPath = maybeFile + '.hbs';
@@ -218,6 +219,23 @@ function showComponentInfo(data, relativePath) {
         return serializePath(maybeFile);
       }
     } else {
+		if (imp.includes('/templates/components/')) {
+			// const pureImp = imp.replace(base, '');
+			// const [root] = serializePath(relativePath).split(base);
+			// const posiblePaths = [];
+			// posiblePaths.push(root + base + '/addon' + pureImp + '.js');
+			// posiblePaths.push(root + base + '/addon' + pureImp + '.hbs');
+			// posiblePaths.push(root + base + '/app' + pureImp + '.js');
+			// posiblePaths.push(root + base + '/app' + pureImp + '.hbs');
+			// console.log(imp);
+			// console.log(pureImp);
+			// console.log(posiblePaths);
+			// posiblePaths.forEach((p)=>{
+			// 	if (fs.existsSync(normalizePath(p))) {
+			// 		console.log('exists', p);
+			// 	} 
+			// });
+		}
       return imp;
     }
   });
