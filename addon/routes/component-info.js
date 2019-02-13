@@ -229,9 +229,9 @@ export default Route.extend({
         });
       });
       this.informator.set("componentsArray", data.resolvedComponents);
-      let items = data.resolvedComponents.map(item =>
+      let items = await Promise.all(data.resolvedComponents.map(item =>
         this.informator.extractComponentInformation(item.name)
-      );
+      ));
       console.log("items", items);
       console.log("data.resolvedComponents", data.resolvedComponents);
       data.components = items;
