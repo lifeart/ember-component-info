@@ -9,9 +9,7 @@ const {
   asyncReadFile
 } = require("./utils/file-utils");
 
-const { processTemplate } = require("./utils/hbs-utils");
-const { processJSFile } = require("./utils/js-utils");
-const { extractComponentInformationFromMeta } = require("./utils/informator");
+const { processTemplate,  processJSFile, extractComponentInformationFromMeta } = require("ember-meta-explorer");
 
 function showComponentInfo(data, relativePath) {
   return processJSFile(data, relativePath);

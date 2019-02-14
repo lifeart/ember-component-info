@@ -664,6 +664,11 @@
     "@glimmer/wire-format" "^0.38.1"
     "@simple-dom/interface" "1.4.0"
 
+"@glimmer/interfaces@^0.39.2":
+  version "0.39.2"
+  resolved "https://registry.yarnpkg.com/@glimmer/interfaces/-/interfaces-0.39.2.tgz#56506d1f13fc14022745f08e7effad8898b29a24"
+  integrity sha512-HRVavfo1AKZu6H1M12UvvW1OoGAxSe3p+Tq+gP7Kp9VzwuRctP+D7mzOzcBD8J4haJCezgFXtj4G2/93GFMJjg==
+
 "@glimmer/resolver@^0.4.1":
   version "0.4.3"
   resolved "https://registry.yarnpkg.com/@glimmer/resolver/-/resolver-0.4.3.tgz#b1baae5c3291b4621002ccf8d7870466097e841d"
@@ -681,10 +686,25 @@
     handlebars "^4.0.6"
     simple-html-tokenizer "^0.5.6"
 
+"@glimmer/syntax@^0.39.2":
+  version "0.39.2"
+  resolved "https://registry.yarnpkg.com/@glimmer/syntax/-/syntax-0.39.2.tgz#435308fe5b42729bf625b437f5d8b242aa35f4f0"
+  integrity sha512-o6RAmT8x/7lZbW+yKmNa05/jfnQKtYud1PwC455jI8J2YuP334SCrSWWIzcmNRrC2j5cDZh9doQwPcrk2aWv/A==
+  dependencies:
+    "@glimmer/interfaces" "^0.39.2"
+    "@glimmer/util" "^0.39.2"
+    handlebars "^4.0.6"
+    simple-html-tokenizer "^0.5.7"
+
 "@glimmer/util@^0.38.1":
   version "0.38.1"
   resolved "https://registry.yarnpkg.com/@glimmer/util/-/util-0.38.1.tgz#41ca0544f95ec980bc492f4f0e5a85564964c028"
   integrity sha512-WAe+bqJSFBR8EmA/NsxcqWmyi2AfOyW9x1jpWczZHJiBkvssiRF6nre39CJVwwMPlFDtdKzvnRQkWVl8ZBhcNw==
+
+"@glimmer/util@^0.39.2":
+  version "0.39.2"
+  resolved "https://registry.yarnpkg.com/@glimmer/util/-/util-0.39.2.tgz#ce9a2d5916f90f4b4c23ad0983d0bbb48e38cea7"
+  integrity sha512-7J4D9nOkKpqu6ObHCjdJslT2+KDusyBx0Wibzo/BLvy+nGliE2O/O3oyg6tC6W/fGi3RyDakQLMX4JQWAj+emA==
 
 "@glimmer/wire-format@^0.38.1":
   version "0.38.1"
@@ -3505,6 +3525,14 @@ ember-maybe-import-regenerator@^0.1.6:
     broccoli-merge-trees "^1.0.0"
     ember-cli-babel "^6.0.0-beta.4"
     regenerator-runtime "^0.9.5"
+
+ember-meta-explorer@0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/ember-meta-explorer/-/ember-meta-explorer-0.0.3.tgz#e6530fe29499207df1bb6af41fe75fa7ef2ff36a"
+  integrity sha512-5Fgfd/NlzkgU8sLj1DdcLOZgh7j/m28TWThLz8zh9EMYn72TT413qIFXt0mDvjpH2/hhKd6itW8NmrKCYwld/g==
+  dependencies:
+    "@babel/core" "^7.2.2"
+    "@glimmer/syntax" "^0.39.2"
 
 ember-qunit@^3.4.1:
   version "3.5.3"
@@ -7442,7 +7470,7 @@ silent-error@^1.0.0, silent-error@^1.0.1, silent-error@^1.1.0:
   dependencies:
     debug "^2.2.0"
 
-simple-html-tokenizer@^0.5.6:
+simple-html-tokenizer@^0.5.6, simple-html-tokenizer@^0.5.7:
   version "0.5.7"
   resolved "https://registry.yarnpkg.com/simple-html-tokenizer/-/simple-html-tokenizer-0.5.7.tgz#8eca336ecfbe2b3c6166cbb31b2682088de79f40"
   integrity sha512-APW9iYbkJ5cijjX4Ljhf3VG8SwYPUJT5gZrwci/wieMabQxWFiV5VwsrP5c6GMRvXKEQMGkAB1d9dvW66dTqpg==
